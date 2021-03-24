@@ -6,7 +6,7 @@ notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em 
 notif_escola <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
                                                  `Se aluno ou professor, qual a turma?`, 
                                                  `Nome da escola`,
-                                                 `Data dos primeiros sintomas:OBRIGATÓRIO!!!!`,
+                                                 `Data dos primeiros sintomas:`,
                                                  `Após análise do caso, o caso é: OBRIGATÒRIO!!!`,
                                                  `SURTO ENCERRADO? *fórmula`,
                                                  `CASO FINALIZADO? *fórmula`)
@@ -126,7 +126,7 @@ ggplot(serie_hist_casos, aes(DT_PRIM_SINTOM, QUANTIDADE, group = 1))+
 
 #Série histórica de casos - Por Escola
 serie_hist_escolas_casos <- subset(notif_escola, notif_escola$DIAGNOSTICO %in% c("Confirmado visto laudo", "Confirmado"))
-serie_hist_escolas_casos$QUANTIDADE <- 1
+serie_hist_escolas_casos$QUANTIDADE <- 1 #Inclui o 1 para poder somar o número de casos
 serie_hist_escolas_casos <- serie_hist_escolas_casos %>%
   group_by(DT_PRIM_SINTOM, ESCOLA) %>%
   summarise(QUANTIDADE = sum(QUANTIDADE, na.rm = T))
@@ -136,7 +136,7 @@ ggplot(serie_hist_escolas_casos, aes(DT_PRIM_SINTOM, QUANTIDADE, group = ESCOLA)
   xlab("Data dos Primeiros Sintomas")+
   ylab("Número de Casos")
 
-#Hoje
+#19/03/2021 - ANALISE SOMENTE COM CASOS CONFIRMADOS E SURTOS ATIVOS
 library(tidyverse)
 source("CUIDADO_link_com_a_base.R")
 
@@ -145,31 +145,81 @@ notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em 
 notif_escola <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
                                                  `Se aluno ou professor, qual a turma?`, 
                                                  `Nome da escola`,
-                                                 `Data dos primeiros sintomas:OBRIGATÓRIO!!!!`,
+                                                 `Data dos primeiros sintomas:`,
                                                  `Após análise do caso, o caso é: OBRIGATÒRIO!!!`,
                                                  `É surto?`,
                                                  `SURTO ENCERRADO? *fórmula`,
                                                  `CASO FINALIZADO? *fórmula`,
-                                                 `Idade da Pessoa* fórmula`)
+                                                 `Idade da Pessoa* fórmula`) 
 
 names(notif_escola) <- c('ALUNO_PROF', 'TURMA', 'ESCOLA', 'DT_PRIM_SINTOM', 'DIAGNOSTICO', 'SURTO', 'SURTO_FINALZ', 'CASO_FINALZ', 'IDADE')
 notif_escola$TURMA <- ifelse(notif_escola$TURMA == 'NULL', NA, notif_escola$TURMA)
 notif_escola$DT_PRIM_SINTOM <- as.Date(notif_escola$DT_PRIM_SINTOM, format = '%d/%m/%Y')
+notif_escola <- subset(notif_escola, notif_escola$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado" ))
 
-#sOMENTE OS CASOS/SURTOS ATIVOS
+#sOMENTE OS CASOS/SURTOS ATIVOS DE CASOS CONFIRMADOS
 notif_escola_ativo <- notif_escola
 notif_escola_ativo <- subset(notif_escola, is.na(notif_escola$SURTO_FINALZ))
-notif_escola_ativo <- subset(notif_escola, is.na(notif_escola$CASO_FINALZ))
+notif_escola_ativo <- subset(notif_escola_ativo, is.na(notif_escola_ativo$CASO_FINALZ))
 
 #Mantido os casos finalizados para analise do surto
 notif_escola_surto <- notif_escola
 notif_escola_surto <- subset(notif_escola, is.na(notif_escola$SURTO_FINALZ))
 
-#NUMERO DE SURTOS ATIVOS
-notif_escola_suativo <- subset(notif_escola_surto, notif_escola_surto$SURTO %in% c("Sim"))
+#NUMERO DE SURTOS ATIVOS Com casos confirmados
+notif_escola_suativo <- subset(notif_escola_surto, notif_escola_surto$SURTO == "Sim")
 notif_escola_suativo$SURTO <- 1
 surtos_escola <- notif_escola_suativo %>%
   group_by(ESCOLA)%>%
   summarise(SURTOS_ESCOLA = sum(SURTO, na.rm = T))
+
+#Grafico Escola com Surtos x Nº de Casos Confirmados
+ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, fill=ESCOLA))+
+  geom_col()+
+  theme_bw()+
+  coord_flip()+ 
+  theme(legend.position = "none")+
+  xlab(" ")+
+  ylab("Número de casos")
+
+#sURTOS AGRUPADOS POR FAIXA ETÁRIA
+surtos_idade <- select(notif_escola_suativo, ESCOLA, ALUNO_PROF, SURTO, IDADE) 
+surtos_idade <- subset(surtos_idade, surtos_idade$ALUNO_PROF %in% c("Aluno","aluno" )) %>%
+  arrange(IDADE)
+Group_idade <- select(surtos_idade, ESCOLA, IDADE)
+
+surtos_idade$FAIXA_ETARIA <- ifelse(surtos_idade$IDADE < 6,"Ensino Infantil",
+                                    ifelse(surtos_idade$IDADE >= 6 & surtos_idade$IDADE < 15,"Ensino Fundamental", 
+                                           ifelse(surtos_idade$IDADE >= 15 & surtos_idade$IDADE < 18,"Ensino Médio", NA)))
+
+surtos_idade$CASOS <- 1
+
+surtos_idade_escola <- surtos_idade %>%
+  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  summarise(CASOS = sum(CASOS, na.rm = T))
+
+ggplot(surtos_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
+  geom_col()+
+  theme_bw()+
+  coord_flip()+ 
+  xlab(" ")+
+  ylab("Casos")+
+  labs(fill='Nível de Ensino') +
+  scale_y_continuous(limits=c(0, 15))
+
+surtos_idade_pura <- surtos_idade %>%
+  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  summarise(CASOS = sum(CASOS, na.rm = T))
+
+ggplot(surtos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAIXA_ETARIA ))+
+  geom_col()+
+  theme_bw()+
+  coord_flip()+ 
+  xlab(" ")+
+  ylab("Casos") +
+  labs(fill='Nível de Ensino') 
+
+
+
 
 
