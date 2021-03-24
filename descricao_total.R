@@ -4,10 +4,10 @@ source("CUIDADO_link_com_a_base.R")
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
 notif_escola <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
-                                                 `Se aluno ou professor, qual a turma?`, 
+                                                 `Se aluno ou professor, qual a turma? Se outros colaboradores, em qual setor trabalha?`, 
                                                  `Nome da escola`,
                                                  `Data dos primeiros sintomas:`,
-                                                 `Após análise do caso, o caso é: OBRIGATÒRIO!!!`,
+                                                 `Após análise do caso, o caso é: OBRIGATÒRIO!!!*Se suspeito, tem que ver resultado do exame e mudar!`,
                                                  `SURTO ENCERRADO? *fórmula`,
                                                  `CASO FINALIZADO? *fórmula`)
 
@@ -35,7 +35,6 @@ notif_escola_conf$CASO <- 1
 casos_escola <- notif_escola_conf %>%
   group_by(ESCOLA)%>%
   summarise(CASOS_ESCOLA = sum(CASO, na.rm = T))
-
 
 # DADOS EM CSV 
 write.csv(casos_escola, "casos_escola.csv", row.names = F)
@@ -79,13 +78,7 @@ ggplot(casos_escola_plot, aes(x = reorder(ESCOLA, CASOS_ESCOLA), y = CASOS_ESCOL
   theme(legend.position = "none")+
   xlab(" ")+
   ylab("Número de casos")
-
-
-# Relação professor/aluno 
-notif_escola_alunoprof <- notif_escola
-notif_escola_alunoprof <- subset(notif_escola, notif_escola$ALUNO_PROF %in% c("Aluno","Professor ou auxiliar de sala"))
-
-notif_escola_alunoprof <- subset (notif_escola_alunoprof, notif_escola_alunoprof$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado" ))
+  
 
 #Série histórica de suspeitos - Todas as Escolas
 serie_hist_susp <- notif_escola
@@ -143,10 +136,10 @@ source("CUIDADO_link_com_a_base.R")
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
 notif_escola <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
-                                                 `Se aluno ou professor, qual a turma?`, 
+                                                 `Se aluno ou professor, qual a turma? Se outros colaboradores, em qual setor trabalha?`, 
                                                  `Nome da escola`,
                                                  `Data dos primeiros sintomas:`,
-                                                 `Após análise do caso, o caso é: OBRIGATÒRIO!!!`,
+                                                 `Após análise do caso, o caso é: OBRIGATÒRIO!!!*Se suspeito, tem que ver resultado do exame e mudar!`,
                                                  `É surto?`,
                                                  `SURTO ENCERRADO? *fórmula`,
                                                  `CASO FINALIZADO? *fórmula`,
@@ -171,7 +164,11 @@ notif_escola_suativo <- subset(notif_escola_surto, notif_escola_surto$SURTO == "
 notif_escola_suativo$SURTO <- 1
 surtos_escola <- notif_escola_suativo %>%
   group_by(ESCOLA)%>%
-  summarise(SURTOS_ESCOLA = sum(SURTO, na.rm = T))
+  summarise(SURTOS_ESCOLA = sum(SURTO, na.rm = T))%>%
+  arrange(desc(SURTOS_ESCOLA))
+
+# DADOS EM CSV 
+write.csv(surtos_escola, "surtos_escola.csv", row.names = F)
 
 #Grafico Escola com Surtos x Nº de Casos Confirmados
 ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, fill=ESCOLA))+
@@ -198,6 +195,9 @@ surtos_idade_escola <- surtos_idade %>%
   group_by(ESCOLA,FAIXA_ETARIA) %>%
   summarise(CASOS = sum(CASOS, na.rm = T))
 
+# DADOS EM CSV 
+write.csv(surtos_idade, "surtos_idade.csv", row.names = F)
+
 ggplot(surtos_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
   geom_col()+
   theme_bw()+
@@ -209,7 +209,11 @@ ggplot(surtos_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
 
 surtos_idade_pura <- surtos_idade %>%
   group_by(ESCOLA,FAIXA_ETARIA) %>%
-  summarise(CASOS = sum(CASOS, na.rm = T))
+  summarise(CASOS = sum(CASOS, na.rm = T))%>%
+  arrange(desc(CASOS))
+
+# DADOS EM CSV 
+write.csv(surtos_idade_pura, "surtos_idade_pura.csv", row.names = F)
 
 ggplot(surtos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAIXA_ETARIA ))+
   geom_col()+
