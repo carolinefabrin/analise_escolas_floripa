@@ -1,4 +1,5 @@
 library(tidyverse)
+library(zoo)
 source("CUIDADO_link_com_a_base.R")
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
@@ -63,7 +64,8 @@ ggplot(notif_escola_final, aes(x = reorder(ESCOLA, TOT_ESCOLA), y = TOT_ESCOLA, 
   xlab(" ")+
   ylab("Número de Suspeitos")
 
-
+# DADOS EM CSV
+write.csv(notif_escola_final, "notif_escola_final.csv", row.names = F)
 
 casos_escola_plot <- notif_escola_final[!is.na(notif_escola_final$CASOS_ESCOLA),]
 
@@ -80,17 +82,23 @@ ggplot(casos_escola_plot, aes(x = reorder(ESCOLA, CASOS_ESCOLA), y = CASOS_ESCOL
   ylab("Número de casos")
   
 
-#Série histórica de suspeitos - Todas as Escolas
+#Série histórica de suspeitos - Todas as Escolas 
 serie_hist_susp <- notif_escola
 serie_hist_susp$QUANTIDADE <- 1
 serie_hist_susp <- serie_hist_susp %>%
   group_by(DT_PRIM_SINTOM) %>%
   summarise(QUANTIDADE = sum(QUANTIDADE, na.rm = T))
-ggplot(serie_hist_susp, aes(DT_PRIM_SINTOM, QUANTIDADE, group = 1))+
-  geom_line()+
+
+"Média móvel de 14 dias" <- "red"
+serie_hist_susp$MM_14 <- rollmean(serie_hist_susp$QUANTIDADE,14, align = "right",fill = NA)
+ggplot(serie_hist_susp, aes(x = DT_PRIM_SINTOM))+
+  geom_line(aes(y = QUANTIDADE))+
+  geom_line(aes(y = MM_14, color = "Média móvel de 14 dias"))+
   theme_bw()+
   xlab("Data dos Primeiros Sintomas")+
-  ylab("Número de suspeitos")
+  ylab("Número de suspeitos")+
+  scale_color_discrete(name = " ")
+
 
 #Série histórica de suspeitos - Por Escola
 serie_hist_escolas_susp <- notif_escola
@@ -111,11 +119,18 @@ serie_hist_casos$QUANTIDADE <- 1
 serie_hist_casos <- serie_hist_casos %>%
   group_by(DT_PRIM_SINTOM) %>%
   summarise(QUANTIDADE = sum(QUANTIDADE, na.rm = T))
-ggplot(serie_hist_casos, aes(DT_PRIM_SINTOM, QUANTIDADE, group = 1))+
-  geom_line()+
+
+
+"Média móvel de 14 dias" <- "red"
+serie_hist_casos$MM_14 <- rollmean(serie_hist_casos$QUANTIDADE,14, align = "right",fill = NA)
+ggplot(serie_hist_casos, aes(x = DT_PRIM_SINTOM))+
+  geom_line(aes(y = QUANTIDADE))+
+  geom_line(aes(y = MM_14, color = "Média móvel de 14 dias"))+
   theme_bw()+
   xlab("Data dos Primeiros Sintomas")+
-  ylab("Número de casos")
+  ylab("Número de casos")+
+  scale_color_discrete(name = " ")
+  
 
 #Série histórica de casos - Por Escola
 serie_hist_escolas_casos <- subset(notif_escola, notif_escola$DIAGNOSTICO %in% c("Confirmado visto laudo", "Confirmado"))
@@ -129,7 +144,7 @@ ggplot(serie_hist_escolas_casos, aes(DT_PRIM_SINTOM, QUANTIDADE, group = ESCOLA)
   xlab("Data dos Primeiros Sintomas")+
   ylab("Número de Casos")
 
-#19/03/2021 - ANALISE SOMENTE COM CASOS CONFIRMADOS E SURTOS ATIVOS
+#19/03/2021 - ANALISE SOMENTE COM CASOS CONFIRMADOS ATIVOS E SURTOS ATIVOS
 library(tidyverse)
 source("CUIDADO_link_com_a_base.R")
 
@@ -205,15 +220,17 @@ ggplot(surtos_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
   xlab(" ")+
   ylab("Casos")+
   labs(fill='Nível de Ensino') +
-  scale_y_continuous(limits=c(0, 15))
+  scale_y_continuous(limits=c(0, 25))
 
 surtos_idade_pura <- surtos_idade %>%
-  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  group_by(FAIXA_ETARIA) %>%
   summarise(CASOS = sum(CASOS, na.rm = T))%>%
   arrange(desc(CASOS))
 
 # DADOS EM CSV 
 write.csv(surtos_idade_pura, "surtos_idade_pura.csv", row.names = F)
+# DADOS EM CSV 
+write.csv(surtos_idade_escola, "surtos_idade_escola.csv", row.names = F)
 
 ggplot(surtos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAIXA_ETARIA ))+
   geom_col()+
@@ -222,8 +239,6 @@ ggplot(surtos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAI
   xlab(" ")+
   ylab("Casos") +
   labs(fill='Nível de Ensino') 
-
-
 
 
 

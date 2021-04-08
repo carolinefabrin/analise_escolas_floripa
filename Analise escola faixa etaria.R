@@ -1,4 +1,4 @@
-#23/03/2021 - ANALISE POR ESCOLARIDADE DE SUSPEITOS/CASOS CONFIRMADOS E SURTOS ATIVOS
+#23/03/2021 - ANALISE POR ESCOLARIDADE DE SUSPEITOS/CASOS CONFIRMADOS 
 library(tidyverse)
 library(dplyr)
 source("CUIDADO_link_com_a_base.R")
@@ -8,17 +8,11 @@ notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em 
 notif_geral <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
                                                  `Se aluno ou professor, qual a turma? Se outros colaboradores, em qual setor trabalha?`, 
                                                  `Nome da escola`,
-                                                 `Data dos primeiros sintomas:`,
-                                                 `Após análise do caso, o caso é: OBRIGATÒRIO!!!*Se suspeito, tem que ver resultado do exame e mudar!`,
-                                                 `É surto?`,
-                                                 `SURTO ENCERRADO? *fórmula`,
-                                                 `CASO FINALIZADO? *fórmula`,
-                                                 `Idade da Pessoa* fórmula`) 
+                                                `Após análise do caso, o caso é: OBRIGATÒRIO!!!*Se suspeito, tem que ver resultado do exame e mudar!`,
+                                                `Idade da Pessoa* fórmula`) 
 
-names(notif_geral) <- c('ALUNO_PROF', 'TURMA', 'ESCOLA', 'DT_PRIM_SINTOM', 'DIAGNOSTICO', 'SURTO', 'SURTO_FINALZ', 'CASO_FINALZ', 'IDADE')
+names(notif_geral) <- c('ALUNO_PROF', 'TURMA', 'ESCOLA','DIAGNOSTICO','IDADE')
 notif_geral$TURMA <- ifelse(notif_geral$TURMA == 'NULL', NA, notif_geral$TURMA)
-notif_geral$DT_PRIM_SINTOM <- as.Date(notif_geral$DT_PRIM_SINTOM, format = '%d/%m/%Y')
-
 
 #Analise Casos confirmados x faixa etária (mantido casos finalizados)
 notif_geral_conf <- subset(notif_geral, notif_geral$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado") 
@@ -48,10 +42,10 @@ ggplot(confirmados_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
   xlab(" ")+
   ylab("Casos")+
   labs(fill='Nível de Ensino')+ 
-  scale_y_continuous(limits=c(0, 20))
+  scale_y_continuous(limits=c(0, 25))
 
 casos_idade_pura <- notif_geral_conf %>%
-  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  group_by(FAIXA_ETARIA) %>%
   summarise(CASOS = sum(CASOS, na.rm = T))
 
 #Dados em CSV
@@ -66,7 +60,7 @@ ggplot(casos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAIX
   labs(fill='Nível de Ensino') 
 
 #Analise Casos suspeitos X faixa etária 
-notif_geral_suspeitos <- subset(notif_geral, notif_geral$DIAGNOSTICO == "Suspeito")
+notif_geral_suspeitos <- subset(notif_geral, notif_geral$DIAGNOSTICO %in% c("Suspeito","Suspeito e recusou fazer teste"))
 notif_geral_suspeitos <- subset(notif_geral_suspeitos, notif_geral_suspeitos$ALUNO_PROF %in% c("Aluno", "aluno"))%>%
                           arrange(IDADE)
 notif_geral_suspeitos$TURMA <- NULL
@@ -93,10 +87,10 @@ ggplot(suspeitos_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
   xlab(" ")+
   ylab("Suspeitos")+
   labs(fill='Nível de Ensino')+ 
-  scale_y_continuous(limits=c(0, 15))
+  scale_y_continuous(limits=c(0,6))
 
 suspeitos_idade_pura <- notif_geral_suspeitos %>%
-  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  group_by(FAIXA_ETARIA) %>%
   summarise(CASOS = sum(CASOS, na.rm = T))
 
 #Dados em CSV
@@ -108,4 +102,51 @@ ggplot(suspeitos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=
   coord_flip()+ 
   xlab(" ")+
   ylab("Suspeitos") +
-  labs(fill='Nível de Ensino') 
+  labs(fill='Nível de Ensino')+
+  scale_y_continuous(limits=c(0, 20))
+
+#Analise Casos descartados X faixa etária 
+notif_geral_descartados <- subset(notif_geral, notif_geral$DIAGNOSTICO == "Descartado")
+notif_geral_descartados <- subset(notif_geral_descartados, notif_geral_descartados$ALUNO_PROF %in% c("Aluno", "aluno"))%>%
+  arrange(IDADE)
+notif_geral_descartados$TURMA <- NULL
+notif_geral_descartados <- notif_geral_descartados[!is.na(notif_geral_descartados$IDADE),]
+
+notif_geral_descartados$FAIXA_ETARIA <- ifelse(notif_geral_descartados$IDADE < 6,"Ensino Infantil",
+                                             ifelse(notif_geral_descartados$IDADE >= 6 & notif_geral_descartados$IDADE < 15,"Ensino Fundamental", 
+                                                    ifelse(notif_geral_descartados$IDADE >= 15 & notif_geral_descartados$IDADE < 18,"Ensino Médio", NA)))
+notif_geral_descartados<- notif_geral_descartados[!is.na(notif_geral_descartados$FAIXA_ETARIA),]
+
+notif_geral_descartados$CASOS <- 1
+descartados_idade_escola <- notif_geral_descartados %>%
+  group_by(ESCOLA,FAIXA_ETARIA) %>%
+  summarise(CASOS = sum(CASOS, na.rm = T))%>%
+  arrange(desc(CASOS))
+
+#Dados em CSV
+write.csv(descartados_idade_escola, "descartados_idade_escola.csv", row.names = F)
+
+ggplot(descartados_idade_escola, aes(x= ESCOLA, y= CASOS, fill=FAIXA_ETARIA ))+
+  geom_col()+
+  theme_bw()+
+  coord_flip()+ 
+  xlab(" ")+
+  ylab("Descartados")+
+  labs(fill='Nível de Ensino')+ 
+  scale_y_continuous(limits=c(0,15))
+
+descartados_idade_pura <- notif_geral_descartados %>%
+  group_by(FAIXA_ETARIA) %>%
+  summarise(CASOS = sum(CASOS, na.rm = T))
+
+#Dados em CSV
+write.csv(descartados_idade_pura, "descartados_idade_pura.csv", row.names = F)
+
+ggplot(descartados_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fill=FAIXA_ETARIA ))+
+  geom_col()+
+  theme_bw()+
+  coord_flip()+ 
+  xlab(" ")+
+  ylab("Descartados") +
+  labs(fill='Nível de Ensino')+
+  scale_y_continuous(limits=c(0, 30))
