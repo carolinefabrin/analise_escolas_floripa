@@ -2,6 +2,10 @@
 library(tidyverse)
 library(dplyr)
 source("CUIDADO_link_com_a_base.R")
+library(readxl)
+Censo_2019 <- read_excel("C:/Users/carol/Downloads/Censo 2019.xlsx")
+View(Censo_2019)
+
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
@@ -53,7 +57,7 @@ ggplot(confirmados_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATE
   coord_flip()+ 
   xlab(" ")+
   ylab("Casos")+
-  scale_y_continuous(limits=c(0, 220))  
+  scale_y_continuous(limits=c(0, 260))  
 
 #Analise quantidade de suspeitos aluno x prof x outros colaboradores
 analise_geral_susp <- subset(analise_geral, analise_geral$DIAGNOSTICO %in% c("Suspeito","Suspeito e recusou fazer teste"))
@@ -167,36 +171,66 @@ ggplot(descartados_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATE
   coord_flip()+ 
   xlab(" ")+
   ylab("Descartados")+
-  scale_y_continuous(limits=c(0,80))  
+  scale_y_continuous(limits=c(0,120))  
 
 #Calculo das Taxas de Positividade
+
 #Taxa de Positividade em Alunos
 alunos_positivos <- subset(analise_geral_conf, analise_geral_conf$CATEGORIA == "Aluno")
 alunos_positivos$CASO <- 1
-sum(alunos_positivos$CASOS)
+total_positivo_alunos <- sum(alunos_positivos$CASOS)
+
+#Calculo do total de alunos suspeitos
+alunos_suspeitos <-subset(analise_geral_susp, analise_geral_susp$CATEGORIA == "Aluno")
+alunos_suspeitos$CASO <- 1
+total_suspeitos_alunos <- sum(alunos_suspeitos$CASOS)
+
+#Calculo do total de contato de caso
+contatos_caso <-subset(analise_geral_contato, analise_geral_contato$CATEGORIA == "Aluno")
+contatos_caso$CASO <- 1
+total_contato_alunos <- sum(contatos_caso$CASOS)
 
 # calculo de total de alunos descartados
-alunos_descartados <- subset(analise_geral, analise_geral$DIAGNOSTICO == "Descartado")
-alunos_descartados <- subset(alunos_descartados, alunos_descartados$ALUNO_PROF == "Aluno")
+alunos_descartados <- subset(analise_geral_descartados, analise_geral_descartados$CATEGORIA == "Aluno")
 alunos_descartados$CASO <- 1
-sum(alunos_descartados$CASO, na.rm = T)
+total_descartados_alunos <- sum(alunos_descartados$CASO)
 
 # Taxa total de alunos confirmados
-alunos_tot <- sum(alunos_positivos$CASOS) + sum(alunos_descartados$CASO, na.rm = T)  
-sum(alunos_positivos$CASOS) / alunos_tot * 100
+alunos_tot <- sum(total_positivo_alunos + total_suspeitos_alunos + total_contato_alunos
+                  + total_descartados_alunos)
+taxa_positividade_alunosnotif <- (total_positivo_alunos  / alunos_tot) * 100
+
+#Taxa alunos afetados x matriculados CENSO 2019
+Taxa_afetados <- (alunos_tot /93368) * 100
 
 ###########################################
 #Taxa de Positividade em Professores
 professores_positivos <- subset(analise_geral_conf, analise_geral_conf$CATEGORIA == "Professor ou auxiliar de sala")
-sum(professores_positivos$CASOS)
+professores_positivos$CASO <- 1
+total_positivos_prof <- sum(professores_positivos$CASOS)
 
-# calculo de total de professores notificados
-professores_tot <- subset(analise_geral, analise_geral$ALUNO_PROF == "Professor ou auxiliar de sala")
-professores_tot$CASO <- 1
-sum(professores_tot$CASO, na.rm = T)
+#Calculo do total de professores suspeitos
+professores_suspeitos <-subset(analise_geral_susp, analise_geral_susp$CATEGORIA == "Professor ou auxiliar de sala")
+professores_suspeitos$CASO <- 1
+total_suspeitos_prof <- sum(professores_suspeitos$CASOS)
+
+#Calculo do total de contato de caso
+contatos_caso_prof <-subset(analise_geral_contato, analise_geral_contato$CATEGORIA == "Professor ou auxiliar de sala")
+contatos_caso_prof$CASO <- 1
+total_contato_prof <- sum(contatos_caso_prof$CASOS)
+
+# calculo de total de professores descartados
+professores_descartados <- subset(analise_geral_descartados, analise_geral_descartados$CATEGORIA == "Professor ou auxiliar de sala")
+professores_descartados$CASO <- 1
+total_descartados_prof <- sum(professores_descartados$CASOS)
 
 # Taxa total de professores confirmados
-sum(professores_positivos$CASOS, na.rm = T) / sum(professores_tot$CASO, na.rm = T) * 100
+prof_tot <- sum(total_positivos_prof + total_suspeitos_prof + total_contato_prof
+                  + total_descartados_prof)
+taxa_positividade_profnotif <- (total_positivos_prof  / prof_tot) * 100
+
+#Taxa professores afetados x matriculados CENSO 2019
+Taxa_afetados <- (prof_tot /
 
 ###############################################
 #Taxa de Positividade em Outros colaboradores
@@ -211,4 +245,4 @@ sum(outros_tot$CASO, na.rm = T)
 # Taxa total de Outros colaboradores confirmados
 sum(outros_positivos$CASOS, na.rm = T) / sum(outros_tot$CASO, na.rm = T) * 100
 
-
+#Tabelas

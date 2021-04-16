@@ -2,6 +2,9 @@
 library(tidyverse)
 library(dplyr)
 source("CUIDADO_link_com_a_base.R")
+library(readxl)
+Censo_2019 <- read_excel("C:/Users/carol/Downloads/Censo 2019.xlsx")
+View(Censo_2019)
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
@@ -150,3 +153,6 @@ ggplot(descartados_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASOS), y= CASOS, fil
   ylab("Descartados") +
   labs(fill='Nível de Ensino')+
   scale_y_continuous(limits=c(0, 30))
+
+#População afetada Censo 2019
+

@@ -59,6 +59,7 @@ total_casos_tipo_escola <- data.frame("Privada" = tot_casos_privada,
                                       "Publica Estadual" = tot_casos_estadual )
 total_casos_tipo_escola <- melt(total_casos_tipo_escola)
 names(total_casos_tipo_escola) <- c("Tipo", "Quantidade")
+
 ggplot(total_casos_tipo_escola, aes(x= Tipo, y= Quantidade, fill= Tipo ))+
   geom_col()+
   theme_bw()+
