@@ -19,7 +19,10 @@ notif_geral$TURMA <- ifelse(notif_geral$TURMA == 'NULL', NA, notif_geral$TURMA)
 
 #Analise Casos confirmados x faixa etária (mantido casos finalizados)
 notif_geral_conf <- subset(notif_geral, notif_geral$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado") 
-                           & notif_geral$ALUNO_PROF %in% c("Aluno", "aluno")) %>%
+                           & notif_geral$ALUNO_PROF %in% c("aluno", "Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
+                                                           "Aluno do ensino infantil",
+                                                           "Aluno do ensino fundamental",
+                                                           "Aluno do ensino médio")) %>%
   arrange(IDADE)
 notif_geral_conf$TURMA <- NULL
 notif_geral_conf <- notif_geral_conf[!is.na(notif_geral_conf$IDADE),]
@@ -34,6 +37,7 @@ confirmados_idade_escola <- notif_geral_conf %>%
   group_by(ESCOLA,FAIXA_ETARIA) %>%
   summarise(CASOS = sum(CASOS, na.rm = T))%>%
   arrange(desc(CASOS))
+sum(confirmados_idade_escola$CASOS)
 
 #Dados em CSV
 write.csv(confirmados_idade_escola, "confirmados_idade_escola.csv", row.names = F)

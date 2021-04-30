@@ -1,10 +1,10 @@
 library(tidyverse)
 library(zoo)
+library(reshape2)
 source("CUIDADO_link_com_a_base.R")
+
 Censo_2019 <- library(readxl)
 Censo_2019 <- read_excel("C:/Users/carol/Downloads/Censo 2019.xlsx")
-View(Censo_2019)
-
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
@@ -148,6 +148,8 @@ surtos_sum <- surtos_tot %>%
   summarise(CASOS_ESCOLA = sum(CASO, na.rm = T))%>%
   arrange(CASOS_ESCOLA)
 sum (surtos_sum$CASOS_ESCOLA)
+surtos_sum$CASO <-1
+sum (surtos_sum$CASO)
 
 # ANALISE SURTOS POR TIPO DE INSTITUICAO (ALUNO/PROF/OUTROS)
 
@@ -159,6 +161,7 @@ tot_surtos_privada <- surtos_privada %>%
   arrange(CASOS_ESCOLA)
 tot_surtos_privada$CASO <- 1
 sum (tot_surtos_privada$CASOS_ESCOLA)
+sum (tot_surtos_privada$CASO)
 
 #SURTOS EM ESCOLAS PUBLICAS MUNICIPAIS
 surtos_publica_munic <- subset(surtos_tot, surtos_tot$INSTITUICAO %in% c("Pública Municipal", "Conveniada com PMF"))
@@ -168,6 +171,7 @@ tot_surtos_munic <- surtos_publica_munic %>%
   arrange(CASOS_ESCOLA)
 tot_surtos_munic$CASO <- 1
 sum(tot_surtos_munic$CASOS_ESCOLA)
+sum (tot_surtos_munic$CASO)
 
 #SURTOS EM ESCOLAS ESTADUAIS
 surtos_estadual <- subset(surtos_tot, surtos_tot$INSTITUICAO == "Pública Estadual")
@@ -177,6 +181,7 @@ tot_surtos_estadual <- surtos_estadual %>%
   arrange(CASOS_ESCOLA)
 tot_surtos_estadual$CASO <- 1
 sum(tot_surtos_estadual$CASOS_ESCOLA)
+sum (tot_surtos_estadual$CASO)
 
 #SURTOS EM ESCOLAS FEDERAIS
 
@@ -205,34 +210,37 @@ names(casos_surtos_tipo_escola) <- c("Tipo", "Casos")
 
 #ANALISE COMPLETA CASOS POR TIPO DE INSTITUICAO
 base_unificada <- merge(casos_surtos_tipo_escola, total_surtos_tipo_escola, by = "Tipo", all = T)
+sum(base_unificada$Casos)
 
 #SURTOS POR NÍVEL DE ENSINO (SOMENTE ALUNOS)
-surtos_tot$CATEGORIA <- ifelse(surtos_tot$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                                                          "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                                                                          "Professor ou auxiliar de sala do ensino infantil",
-                                                                                          "Professor do ensino fundamental e médio",
-                                                                                          "Professor do ensino médio",
-                                                                                          "Outros professores (como de universidade; escola para adultos",
-                                                                                          "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                              ifelse(surtos_tot$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                                                 "Aluno do ensino infantil",
-                                                                                                 "Aluno do ensino fundamental",
-                                                                                                 "Aluno do ensino médio"), "Aluno",
-                                                     ifelse(surtos_tot$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
+surtos_tot$CATEGORIA <- ifelse(surtos_tot$ALUNO_PROF %in% 
+                                 c("Professor ou auxiliar de sala",
+                                 "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                "Professor ou auxiliar de sala do ensino infantil",
+                                "Professor do ensino fundamental e médio",
+                               "Professor do ensino médio",
+                              "Outros professores (como de universidade; escola para adultos)",
+                              "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
+                              
+                              ifelse(surtos_tot$ALUNO_PROF %in% 
+                              c("aluno", "Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
+                              "Aluno do ensino infantil",
+                              "Aluno do ensino fundamental",
+                              "Aluno do ensino médio"), "Aluno",
+                                                     
+                              ifelse(surtos_tot$ALUNO_PROF %in% 
+                              c("Outros colaboradores"), "Outros colaboradores", NA)))
                                                             
-                                                     )
-                                              )
-)
-
-
+                                                     
+                                            
 
 surtos_nivel_ensino <- subset(surtos_tot, surtos_tot$CATEGORIA == "Aluno") %>%
   arrange(IDADE)
 surtos_nivel_ensino <- surtos_nivel_ensino[!is.na(surtos_nivel_ensino$IDADE),]
 
 surtos_nivel_ensino$FAIXA_ETARIA <- ifelse(surtos_nivel_ensino$IDADE < 6,"Ensino Infantil",
-                                        ifelse(surtos_nivel_ensino$IDADE >= 6 & surtos_nivel_ensino$IDADE < 15,"Ensino Fundamental", 
-                                               ifelse(surtos_nivel_ensino$IDADE >= 15 & surtos_nivel_ensino$IDADE < 18,"Ensino Médio", NA)))
+                                    ifelse(surtos_nivel_ensino$IDADE >= 6 & surtos_nivel_ensino$IDADE < 15,"Ensino Fundamental", 
+                                    ifelse(surtos_nivel_ensino$IDADE >= 15 & surtos_nivel_ensino$IDADE <= 18,"Ensino Médio",NA)))
 
 
 surtos_idade_escola <- surtos_nivel_ensino %>%
@@ -254,6 +262,7 @@ surtos_idade_pura <- surtos_idade_escola %>%
   group_by(FAIXA_ETARIA) %>%
   summarise(CASO = sum(CASO, na.rm = T))%>%
   arrange(desc(CASO))
+sum(surtos_idade_escola$CASO)
 
 #Grafico casos por nível de ensino
 ggplot(surtos_idade_pura, aes(x= reorder(FAIXA_ETARIA,CASO), y= CASO, fill=FAIXA_ETARIA ))+
@@ -284,13 +293,41 @@ sum (surtos_fundamental$CASO)
 surtos_medio <- subset(surtos_idade_escola, surtos_idade_escola$FAIXA_ETARIA == "Ensino Médio")
 sum (surtos_medio$CASO)
 
+#SURTOS NÍVEL DE ENSINO - PROFESSORES
+surtos_nivel_prof <- subset(surtos_tot, surtos_tot$ALUNO_PROF 
+                       %in% c("Professor ou auxiliar de sala",
+                             "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                              "Professor ou auxiliar de sala do ensino infantil",
+                               "Professor do ensino fundamental e médio",
+                                "Professor do ensino médio",
+                                "Outros professores (como de universidade; escola para adultos)",
+                                "Professor do ensino fundamental"))
+  
+
+
+surtos_nivel_prof$nivel <- ifelse(surtos_nivel_prof$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
+                                                                           "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                                                           "Professor do ensino fundamental e médio",
+                                                                           "Outros professores (como de universidade; escola para adultos)"), 
+                                                                            "Ignorados", 
+                                 ifelse(surtos_nivel_prof$ALUNO_PROF == "Professor ou auxiliar de sala do ensino infantil", "Infatil", 
+                                        ifelse(surtos_nivel_prof$ALUNO_PROF == "Professor do ensino fundamental", "Fundamental",    
+                                               ifelse(surtos_nivel_prof$ALUNO_PROF == "Professor do ensino médio","Médio"))))
+                                            
+
+
+
+
+
+
+
 #SURTOS EM PROFESSORES
 surtos_tot$CATEGORIA <- ifelse(surtos_tot$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
                                                             "Professor ou auxiliar de sala de ensino infantil ou fundamental",
                                                             "Professor ou auxiliar de sala do ensino infantil",
                                                             "Professor do ensino fundamental e médio",
                                                             "Professor do ensino médio",
-                                                            "Outros professores (como de universidade; escola para adultos",
+                                                            "Outros professores (como de universidade; escola para adultos)",
                                                             "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
                                ifelse(surtos_tot$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
                                                                    "Aluno do ensino infantil",
@@ -339,3 +376,29 @@ sum(surtos_outros_municipal$CASO)
 
 surtos_outros_estadual <- subset(surtos_outros_instituicao, surtos_outros_instituicao$INSTITUICAO == "Pública Estadual")
 sum(surtos_outros_estadual$CASO)
+
+#MEU DATA FRAME DE SURTOS
+placar_surtos <- data.frame(Escolas = c('PRIVADAS', 'MUNICIPAIS', 'ESTADUAIS', 'FEDERAIS', 'TOTAL'),
+                         "Total Surtos/Escola" = c(sum (tot_surtos_privada$CASO),sum (tot_surtos_munic$CASO),
+                                            sum (tot_surtos_estadual$CASO), 0, sum (surtos_sum$CASO)), 
+
+"Total de Casos" = c(sum (tot_surtos_privada$CASOS_ESCOLA), sum(tot_surtos_munic$CASOS_ESCOLA),
+                         sum(tot_surtos_estadual$CASOS_ESCOLA), 0, sum(base_unificada$Casos)), 
+
+"Alunos" = c(sum(surtos_alunos_privada$CASO), sum(surtos_alunos_municipal$CASO),
+             sum(surtos_alunos_estadual$CASO), 0, sum(surtos_idade_escola$CASO)), 
+
+"Professores" = c(sum(surtos_prof_privada$CASO), sum(surtos_prof_municipal$CASO),
+                  sum(surtos_prof_estadual$CASO), 0, sum(surtos_prof_instituicao$CASO)) ,
+
+
+
+"Outros Colaboradores" = c(sum(surtos_outros_privada$CASO), sum(surtos_outros_municipal$CASO),
+                           sum(surtos_outros_estadual$CASO), 0, sum(surtos_outros_colab$CASO)),
+
+"Surtos Ativos/Escola" = c (sum(suativo_priv$CASO), sum (suativo_munic$CASO),
+                     sum(suativo_estadual$CASO), 0 , sum(surtos_escola$CASO)))
+
+# DADOS EM CSV 
+write.csv(placar_surtos, "placar_surtos.csv", row.names = F)
+

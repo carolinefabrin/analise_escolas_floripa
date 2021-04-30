@@ -28,6 +28,19 @@ casos_privada <- privada_privada %>%
 # DADOS EM CSV 
 write.csv(casos_privada, "casos_privada.csv", row.names = F)
 
+#CALCULO DE POSITIVOS - PRIVADA
+privada_privada_conf <- subset(privada_privada, privada_privada$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado"))
+sum(privada_privada_conf$CASO)
+
+#ALUNOS PRIVADA
+privada_alunos_posit <- subset(privada_privada_conf, privada_privada_conf$ALUNO_PROF
+                              %in% c ("aluno", "Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
+                                      "Aluno do ensino infantil",
+                                      "Aluno do ensino fundamental",
+                                      "Aluno do ensino médio"))
+#ALUNOS POSITIVOS PRIVADA
+sum(privada_alunos_posit$CASO)
+
 # Calculo de notificados por escola publica municipal 
 publica_municipal <- subset(publica_privada, publica_privada$INSTITUICAO %in% c("Pública Municipal", "Conveniada com PMF"))
 publica_municipal$CASO <- 1
@@ -39,6 +52,9 @@ casos_municipal <- publica_municipal %>%
 # DADOS EM CSV 
 write.csv(casos_municipal, "casos_municipal.csv", row.names = F)
 
+publica_municipal_conf <- subset(publica_municipal, publica_municipal$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado"))
+sum(publica_municipal_conf$CASO)
+
 # Calculo de notificados por escola estadual
 publica_estadual <- subset(publica_privada, publica_privada$INSTITUICAO == "Pública Estadual")
 publica_estadual$CASO <- 1
@@ -49,6 +65,9 @@ casos_estadual <- publica_estadual %>%
 
 # DADOS EM CSV 
 write.csv(casos_estadual, "casos_estadual.csv", row.names = F)
+
+publica_estadual_conf <- subset(publica_estadual, publica_estadual$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado"))
+sum(publica_estadual_conf$CASO)
 
 #Comparativo casos confirmados
 tot_casos_privada <- sum(casos_privada$CASOS_ESCOLA)
@@ -65,3 +84,5 @@ ggplot(total_casos_tipo_escola, aes(x= Tipo, y= Quantidade, fill= Tipo ))+
   theme_bw()+
   xlab("Escolas")+
   ylab(" Notificações") 
+
+write.csv(total_casos_tipo_escola, "total_casos_tipo_escola.csv", row.names = F)
