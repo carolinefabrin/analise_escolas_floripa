@@ -9,7 +9,7 @@ View(Censo_2019)
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
-analise_geral <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
+analise_geral <- notificaescola %>% dplyr::select(`A pessoa que você quer notificar é aluno ou funcionário?`,
                                                  `Se aluno ou professor, qual a turma? Se outros colaboradores, em qual setor trabalha?`, 
                                                  `Nome da escola`,
                                                  `Após análise do caso, o caso é: OBRIGATÒRIO!!!*Se suspeito, tem que ver resultado do exame e mudar!`,

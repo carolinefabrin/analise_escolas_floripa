@@ -6,7 +6,7 @@ source("CUIDADO_link_com_a_base.R")
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
-solicitacoes_escola <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
+solicitacoes_escola <- notificaescola %>% dplyr::select(`A pessoa que você quer notificar é aluno ou funcionário?`,
                                                  `Nome da escola`,
                                                  `Se aluno ou professor, qual a turma? Se outros colaboradores, em qual setor trabalha?`,
                                                  `Data de afastamento da turma`,
