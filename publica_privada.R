@@ -18,7 +18,8 @@ publica_privada <- publica_privada[!is.na(publica_privada$DIAGNOSTICO),]
 publica_privada <- publica_privada[!is.na(publica_privada$ALUNO_PROF),]
 
 # Calculo de notificados por escola privada
-privada_privada <- subset(publica_privada, publica_privada$INSTITUICAO == "Privada")
+privada_privada <- subset(publica_privada, publica_privada$INSTITUICAO == 
+                            "Privada")
 privada_privada$CASO <- 1
 casos_privada <- privada_privada %>%
   group_by(ESCOLA)%>%
@@ -34,15 +35,17 @@ sum(privada_privada_conf$CASO)
 
 #ALUNOS PRIVADA
 privada_alunos_posit <- subset(privada_privada_conf, privada_privada_conf$ALUNO_PROF
-                              %in% c ("aluno", "Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                      "Aluno do ensino infantil",
-                                      "Aluno do ensino fundamental",
-                                      "Aluno do ensino médio"))
+                              %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
+                                    "Aluno do ensino infantil",
+                                    "Aluno do ensino fundamental",
+                                    "Aluno do ensino médio"))
 #ALUNOS POSITIVOS PRIVADA
 sum(privada_alunos_posit$CASO)
 
 # Calculo de notificados por escola publica municipal 
-publica_municipal <- subset(publica_privada, publica_privada$INSTITUICAO %in% c("Pública Municipal", "Conveniada com PMF"))
+publica_municipal <- subset(publica_privada, publica_privada$INSTITUICAO %in% 
+                              c("Pública Municipal", "Conveniada com PMF"))
+
 publica_municipal$CASO <- 1
 casos_municipal <- publica_municipal %>%
   group_by(ESCOLA)%>%
@@ -56,7 +59,8 @@ publica_municipal_conf <- subset(publica_municipal, publica_municipal$DIAGNOSTIC
 sum(publica_municipal_conf$CASO)
 
 # Calculo de notificados por escola estadual
-publica_estadual <- subset(publica_privada, publica_privada$INSTITUICAO == "Pública Estadual")
+publica_estadual <- subset(publica_privada, publica_privada$INSTITUICAO == 
+                             "Pública Estadual")
 publica_estadual$CASO <- 1
 casos_estadual <- publica_estadual %>%
   group_by(ESCOLA)%>%

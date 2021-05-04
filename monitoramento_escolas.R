@@ -47,25 +47,25 @@ write.csv(notif_escola_conf_hoje, "notif_escola_conf_hoje.csv", row.names = F)
 
 
 #CASOS CONFIRMADOS EM ALUNOS
-notif_escola_hoje$CATEGORIA <- ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                            "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                                            "Professor ou auxiliar de sala do ensino infantil",
-                                                            "Professor do ensino fundamental e médio",
-                                                            "Professor do ensino médio",
-                                                            "Outros professores (como de universidade; escola para adultos)",
-                                                            "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                      ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Aluno", 
-                                                                   "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                   "Aluno do ensino infantil",
-                                                                   "Aluno do ensino fundamental",
-                                                                   "Aluno do ensino médio"), "Aluno",
-                                      ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Outros colaboradores"), 
-                                                                                 "Outros colaboradores", NA
+notif_escola_hoje$CATEGORIA <- ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Professor ou auxiliar de sala", 
+                                                                          "Professor ou auxiliar de sala do ensino infantil",
+                                                                          "Professor do ensino fundamental",
+                                                                          "Professor do ensino médio",
+                                                                          "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                                                          "Professor do ensino fundamental e médio",
+                                                                          "Outros professores (como de universidade; escola para adultos)"),
+                                                                          "Professor ou auxiliar de sala",
+                                ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Aluno", "Aluno do ensino infantil",
+                                                                          "Aluno do ensino fundamental",
+                                                                          "Aluno do ensino médio",
+                                                                          "Aluno de idiomas",
+                                                                          "Outros alunos (universidade; escola para adultos; por exemplo)"),
+                                                                          "Aluno",
+                                ifelse(notif_escola_hoje$ALUNO_PROF %in% c("Outros colaboradores"), 
+                                                                          "Outros colaboradores", NA)))
                                              
-                                      )
-                               )
-)
-
+                                      
+                               
 
 
 #ALUNOS
@@ -82,7 +82,7 @@ sum(notif_outros_hj$CASOS)
 
 
 # CASOS SUSPEITOS NOTIFICADOS
-notif_escola_susp_hoje <- subset (monitora_escola, monitora_escola$DIAGNOSTICO %in% c("Suspeito", "Suspeito e recusou fazer teste"))
+notif_escola_susp_hoje <- subset (monitora_escola, monitora_escola$DIAGNOSTICO %in% c("Suspeito", "Suspeito e recusou exame"))
 notif_escola_susp_hoje$CASOS <- 1 
 notif_escola_susp_hoje <- subset(notif_escola_susp_hoje, is.na(notif_escola_susp_hoje$CASO_FINALZ))
 sum(notif_escola_susp_hoje$CASOS)
@@ -96,24 +96,25 @@ notif_escolacomsusp_hoje <-notif_escola_susp_hoje %>%
 write.csv(notif_escolacomsusp_hoje, "notif_escolacomsusp_hoje.csv", row.names = F)
 
 
-notif_escola_susp_hoje$CATEGORIA <- ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                                          "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                                                          "Professor ou auxiliar de sala do ensino infantil",
-                                                                          "Professor do ensino fundamental e médio",
-                                                                          "Professor do ensino médio",
-                                                                          "Outros professores (como de universidade; escola para adultos)",
-                                                                          "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                      ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                                 "Aluno do ensino infantil",
-                                                                                 "Aluno do ensino fundamental",
-                                                                                 "Aluno do ensino médio"), "Aluno",
-                                             ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
+notif_escola_susp_hoje$CATEGORIA <- ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Professor ou auxiliar de sala", 
+                                                                                    "Professor ou auxiliar de sala do ensino infantil",
+                                                                                    "Professor do ensino fundamental",
+                                                                                    "Professor do ensino médio",
+                                                                                    "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                                                                    "Professor do ensino fundamental e médio",
+                                                                                    "Outros professores (como de universidade; escola para adultos)"), 
+                                                                                    "Professor ou auxiliar de sala",
+                                      ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Aluno", "Aluno do ensino infantil",
+                                                                                      "Aluno do ensino fundamental",
+                                                                                      "Aluno do ensino médio",
+                                                                                      "Aluno de idiomas",
+                                                                                      "Outros alunos (universidade; escola para adultos; por exemplo)"),
+                                                                                      "Aluno",
+                                      ifelse(notif_escola_susp_hoje$ALUNO_PROF %in% c("Outros colaboradores"), 
+                                                                                    "Outros colaboradores", NA)))
                                                     
-                                             )
-                                      )
-)
-
-
+                                             
+                                      
 
 #SUSPEITOS EM ALUNOS
 notifsusp_alunos_hj <- subset(notif_escola_susp_hoje, notif_escola_susp_hoje$CATEGORIA == "Aluno")
@@ -152,7 +153,7 @@ source("CUIDADO_link_com_a_base.R")
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
-monitora_escola_ativo <- notificaescola %>% dplyr::select(`O caso suspeito ou confirmado é aluno ou funcionário?`,
+monitora_escola_ativo <- notificaescola %>% dplyr::select(`A pessoa que você quer notificar é aluno ou funcionário? `,
   
                                                  `Nome da escola`,
                                                  `Data dos primeiros sintomas:`,

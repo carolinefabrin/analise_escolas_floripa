@@ -26,22 +26,24 @@ analise_geral_conf <- subset(analise_geral, analise_geral$DIAGNOSTICO %in% c("Co
 analise_geral_conf$CASOS <- 1
 
 
-analise_geral_conf$CATEGORIA <- ifelse(analise_geral_conf$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                                            "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+analise_geral_conf$CATEGORIA <- ifelse(analise_geral_conf$ALUNO_PROF %in% c("Professor ou auxiliar de sala", 
                                                                             "Professor ou auxiliar de sala do ensino infantil",
-                                                                            "Professor do ensino fundamental e médio",
+                                                                            "Professor do ensino fundamental",
                                                                             "Professor do ensino médio",
-                                                                            "Outros professores (como de universidade; escola para adultos",
-                                                                            "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                       ifelse(analise_geral_conf$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                                   "Aluno do ensino infantil",
-                                                                                   "Aluno do ensino fundamental",
-                                                                                   "Aluno do ensino médio"), "Aluno",
-                                              ifelse(analise_geral_conf$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
+                                                                            "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                                                            "Professor do ensino fundamental e médio",
+                                                                            "Outros professores (como de universidade; escola para adultos)"),
+                                                                            "Professor ou auxiliar de sala",
+                                ifelse(analise_geral_conf$ALUNO_PROF %in% c("Aluno", "Aluno do ensino infantil",
+                                                                            "Aluno do ensino fundamental",
+                                                                            "Aluno do ensino médio",
+                                                                            "Aluno de idiomas",
+                                                                            "Outros alunos (universidade; escola para adultos; por exemplo)"),
+                                                                            "Aluno",
+                               ifelse(analise_geral_conf$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA)))
                                                      
-                                              )
-                                          )
-                                       )
+                                              
+                                          
 
 analise_geral_conf <- analise_geral_conf[!is.na(analise_geral_conf$CATEGORIA),]                                           
 confirmados_geral <- analise_geral_conf %>%
@@ -60,7 +62,7 @@ ggplot(confirmados_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATE
   scale_y_continuous(limits=c(0, 260))  
 
 #Analise quantidade de suspeitos aluno x prof x outros colaboradores
-analise_geral_susp <- subset(analise_geral, analise_geral$DIAGNOSTICO %in% c("Suspeito","Suspeito e recusou fazer teste"))
+analise_geral_susp <- subset(analise_geral, analise_geral$DIAGNOSTICO %in% c("Suspeito","Suspeito e recusou exame"))
 analise_geral_susp$CASOS <- 1
 
 
@@ -75,11 +77,10 @@ analise_geral_susp$CATEGORIA <- ifelse(analise_geral_susp$ALUNO_PROF %in% c("Pro
                                                                                    "Aluno do ensino infantil",
                                                                                    "Aluno do ensino fundamental",
                                                                                    "Aluno do ensino médio"), "Aluno",
-                                              ifelse(analise_geral_susp$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
+                                              ifelse(analise_geral_susp$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA)))
                                                      
-                                              )
-                                       )
-)
+                                              
+                                      
 
 analise_geral_susp <- analise_geral_susp[!is.na(analise_geral_susp$CATEGORIA),]                                          
 suspeitos_geral <- analise_geral_susp %>%
@@ -97,65 +98,28 @@ ggplot(suspeitos_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATEGO
   ylab("Suspeitos")+
   scale_y_continuous(limits=c(0, 80))  
 
-#Analise quantidade de CONTATO DE CASO aluno x prof x outros colaboradores
-analise_geral_contato <- subset(analise_geral, analise_geral$DIAGNOSTICO == "Contato de caso")
-analise_geral_contato$CASOS <- 1
-
-
-analise_geral_contato$CATEGORIA <- ifelse(analise_geral_contato$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                                            "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                                                            "Professor ou auxiliar de sala do ensino infantil",
-                                                                            "Professor do ensino fundamental e médio",
-                                                                            "Professor do ensino médio",
-                                                                            "Outros professores (como de universidade; escola para adultos",
-                                                                            "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                       ifelse(analise_geral_contato$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                                   "Aluno do ensino infantil",
-                                                                                   "Aluno do ensino fundamental",
-                                                                                   "Aluno do ensino médio"), "Aluno",
-                                              ifelse(analise_geral_contato$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
-                                                     
-                                              )
-                                       )
-)
-
-analise_geral_contato <- analise_geral_contato[!is.na(analise_geral_contato$CATEGORIA),]                                          
-contatos_geral <- analise_geral_contato %>%
-  group_by(CATEGORIA) %>%
-  summarise(CASOS = sum(CASOS, na.rm = T))
-
-#Dados em CSV
-write.csv(contatos_geral, "contatos_geral.csv", row.names = F)
-
-ggplot(contatos_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATEGORIA ))+
-  geom_col()+
-  theme_bw()+
-  coord_flip()+ 
-  xlab(" ")+
-  ylab("Contato de caso")+
-  scale_y_continuous(limits=c(0, 25))  
 
 #Analise quantidade de DESCARTADOS aluno x prof x outros colaboradores
-analise_geral_descartados <- subset(analise_geral, analise_geral$DIAGNOSTICO == "Descartado")
+analise_geral_descartados <- subset(analise_geral, analise_geral$DIAGNOSTICO %in% c("Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
 analise_geral_descartados$CASOS <- 1
 
 
 analise_geral_descartados$CATEGORIA <- ifelse(analise_geral_descartados$ALUNO_PROF %in% c("Professor ou auxiliar de sala",
-                                                                                  "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                                                                  "Professor ou auxiliar de sala do ensino infantil",
-                                                                                  "Professor do ensino fundamental e médio",
-                                                                                  "Professor do ensino médio",
-                                                                                  "Outros professores (como de universidade; escola para adultos",
-                                                                                  "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
-                                          ifelse(analise_geral_descartados$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                                                                         "Aluno do ensino infantil",
-                                                                                         "Aluno do ensino fundamental",
-                                                                                         "Aluno do ensino médio"), "Aluno",
-                                                 ifelse(analise_geral_descartados$ALUNO_PROF %in% c("Outros colaboradores"), "Outros colaboradores", NA
+                                                                                          "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                                                                          "Professor ou auxiliar de sala do ensino infantil",
+                                                                                          "Professor do ensino fundamental e médio",
+                                                                                          "Professor do ensino médio",
+                                                                                          "Outros professores (como de universidade; escola para adultos",
+                                                                                          "Professor do ensino fundamental"), "Professor ou auxiliar de sala",
+                                        ifelse(analise_geral_descartados$ALUNO_PROF %in% c("Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
+                                                                                            "Aluno do ensino infantil",
+                                                                                           "Aluno do ensino fundamental",
+                                                                                            "Aluno do ensino médio"), "Aluno",
+                                         ifelse(analise_geral_descartados$ALUNO_PROF %in% c("Outros colaboradores"),
+                                                                                           "Outros colaboradores", NA)))
                                                         
-                                                 )
-                                          )
-)
+                                                
+                                          
 
 analise_geral_descartados <- analise_geral_descartados[!is.na(analise_geral_descartados$CATEGORIA),]                                          
 descartados_geral <- analise_geral_descartados %>%
@@ -172,6 +136,8 @@ ggplot(descartados_geral, aes(x= reorder(CATEGORIA, CASOS), y= CASOS, fill= CATE
   xlab(" ")+
   ylab("Descartados")+
   scale_y_continuous(limits=c(0,120))  
+
+
 
 #Calculo das Taxas de Positividade
 
