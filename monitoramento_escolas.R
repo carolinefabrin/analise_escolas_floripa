@@ -17,6 +17,15 @@ monitora_escola <- notificaescola %>% dplyr::select(`A pessoa que você quer not
 names(monitora_escola) <- c('ALUNO_PROF', 'ESCOLA', 'DT_PRIM_SINTOM', 'DIAGNOSTICO', 'SURTO', 'SURTO_FINALZ', 'CASO_FINALZ', 'INSTITUICAO')
 monitora_escola$DT_PRIM_SINTOM <- as.Date(monitora_escola$DT_PRIM_SINTOM, format = '%d/%m/%Y')
 monitora_escola <- monitora_escola[!is.na(monitora_escola$ESCOLA),]
+monitora_escola <- monitora_escola[!is.na(monitora_escola$DIAGNOSTICO),]
+monitora_escola <- monitora_escola[!is.na(monitora_escola$ALUNO_PROF),]
+
+
+monitora_escola <- subset(monitora_escola, monitora_escola$DIAGNOSTICO %in% 
+                                 c("Confirmado", "Confirmado visto laudo",
+                                   "Suspeito", "Suspeito e recusou exame", 
+                                   "Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
+
 
 # ESCOLAS AFETADAS ATUALMENTE (confirmados e suspeitos)
 monitora_escola_atual <- subset(monitora_escola, monitora_escola$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado", "Suspeito", "Suspeito e recusou fazer teste"))
@@ -153,7 +162,7 @@ source("CUIDADO_link_com_a_base.R")
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
-monitora_escola_ativo <- notificaescola %>% dplyr::select(`A pessoa que você quer notificar é aluno ou funcionário? `,
+monitora_escola_ativo <- notificaescola %>% dplyr::select(`A pessoa que você quer notificar é aluno ou funcionário?`,
   
                                                  `Nome da escola`,
                                                  `Data dos primeiros sintomas:`,
@@ -196,6 +205,12 @@ sum (suativo_munic$CASO)
 
 suativo_estadual <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Pública Estadual")
 sum(suativo_estadual$CASO)
+
+suativo_federal <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Pública Federal")
+sum(suativo_federal$CASO)
+
+suativo_filantropica <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Filantropica")
+sum(suativo_filantropica$CASO)
 
 
 

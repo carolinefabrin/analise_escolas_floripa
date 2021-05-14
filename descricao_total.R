@@ -20,14 +20,25 @@ notif_escola <- notificaescola %>% dplyr::select(`A pessoa que você quer notifi
 names(notif_escola) <- c('ALUNO_PROF', 'ESCOLA', 'DT_PRIM_SINTOM', 'DIAGNOSTICO', 'SURTO', 'INSTITUICAO','IDADE')
 notif_escola$DT_PRIM_SINTOM <- as.Date(notif_escola$DT_PRIM_SINTOM, format = '%d/%m/%Y')
 notif_escola <- notif_escola[!is.na(notif_escola$ESCOLA),]
+notif_escola <- notif_escola [!is.na(notif_escola $DIAGNOSTICO),]
+notif_escola  <- notif_escola [!is.na(notif_escola $ALUNO_PROF),]
+
+
+notif_escola  <- subset(notif_escola , notif_escola $DIAGNOSTICO %in% 
+                            c("Confirmado", "Confirmado visto laudo",
+                              "Suspeito", "Suspeito e recusou exame", 
+                              "Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
+
+
 com_dados_sobre_data <- sum(!is.na(notif_escola$DT_PRIM_SINTOM))
 com_dados_sobre_data
 sem_dados_sobre_data <- sum(is.na(notif_escola$DT_PRIM_SINTOM))
 sem_dados_sobre_data
 sem_dados_sobre_data/(com_dados_sobre_data+sem_dados_sobre_data)
 
-# Calculo de confirmados por escola
-notif_escola_conf <- subset(notif_escola, notif_escola$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado" ))
+# Calculo de confirmados por escola (LISTA DE ESCOLAS COM RESPECTIVO Nº DE CASOS CONFIRMARDOS)
+notif_escola_conf <- subset(notif_escola, notif_escola$DIAGNOSTICO %in% 
+                              c("Confirmado visto laudo","Confirmado" ))
 notif_escola_conf$CASO <- 1
 casos_escola <- notif_escola_conf %>%
   group_by(ESCOLA)%>%
@@ -38,7 +49,7 @@ casos_escola <- notif_escola_conf %>%
 write.csv(casos_escola, "casos_escola.csv", row.names = F)
 write.csv(notif_escola, "notif_escola.csv", row.names = F)
 
-# calculo de total por escola
+# calculo de total por escola (LISTA DE ESCOLAS COM RESPECTIVAS NOTIFICAÇÕES)
 notif_escola_tot <- notif_escola
 notif_escola_tot$CASO <- 1
 casos_escola_tot <- notif_escola_tot %>%
@@ -47,7 +58,7 @@ casos_escola_tot <- notif_escola_tot %>%
   arrange(TOT_ESCOLA)
 
 
-# Merge dos confirmados com o total
+# Merge dos confirmados com o total (TAXA DE POSITIVIDADE POR ESCOLA)
 notif_escola_final <- merge(casos_escola, casos_escola_tot,by = 'ESCOLA', all = T )
 notif_escola_final$TAXA_POSITIVOS <- notif_escola_final$CASOS_ESCOLA/notif_escola_final$TOT_ESCOLA * 100
 
@@ -192,15 +203,42 @@ sum (tot_surtos_estadual$CASO)
 
 ############ SURTOS EM ESCOLAS FEDERAIS ################
 
+surtos_federal <- subset(surtos_tot, surtos_tot$INSTITUICAO == "Pública Federal")
+tot_surtos_federal <- surtos_federal %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASO, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+tot_surtos_federal$CASO <- 1
+sum (tot_surtos_federal$CASOS_ESCOLA)
+sum (tot_surtos_federal$CASO)
+
+
+############ SURTOS EM ESCOLAS FILANTROPICAS ################
+
+surtos_filantropica <- subset(surtos_tot, surtos_tot$INSTITUICAO == "Filantropica")
+tot_surtos_filantropica <- surtos_filantropica %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASO, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+tot_surtos_filantropica$CASO <- 1
+sum (tot_surtos_filantropica$CASOS_ESCOLA)
+sum (tot_surtos_filantropica$CASO)
+
 
 ############      ANALISE SURTOS POR INSTITUICAO ######################
 
 privada <- sum(tot_surtos_privada$CASO)
 municipal <- sum(tot_surtos_munic$CASO)
 estadual <- sum(tot_surtos_estadual$CASO)
+federal <- sum (tot_surtos_federal$CASO)
+filantropica <- sum(tot_surtos_filantropica$CASO) 
+  
 total_surtos_tipo_escola <- data.frame("Privada" = privada,
                                       "Publica Municipal" = municipal,
-                                      "Publica Estadual" = estadual )
+                                      "Publica Estadual" = estadual,
+                                      "Publica Federal" = federal,
+                                      "Filantropica" = filantropica)
+
 total_surtos_tipo_escola <- melt(total_surtos_tipo_escola)
 names(total_surtos_tipo_escola) <- c("Tipo", "Nº Escolas")
 
@@ -210,9 +248,15 @@ names(total_surtos_tipo_escola) <- c("Tipo", "Nº Escolas")
 privada <- sum(tot_surtos_privada$CASOS_ESCOLA)
 municipal <- sum(tot_surtos_munic$CASOS_ESCOLA)
 estadual <- sum(tot_surtos_estadual$CASOS_ESCOLA)
+federal <- sum(tot_surtos_federal$CASOS_ESCOLA)
+filantropica <-sum(tot_surtos_filantropica$CASOS_ESCOLA)
+  
 casos_surtos_tipo_escola <- data.frame("Privada" = privada,
                                        "Publica Municipal" = municipal,
-                                       "Publica Estadual" = estadual )
+                                       "Publica Estadual" = estadual,
+                                       "Publica Federal" = federal,
+                                       "Filantropica" = filantropica)
+
 casos_surtos_tipo_escola <- melt(casos_surtos_tipo_escola)
 names(casos_surtos_tipo_escola) <- c("Tipo", "Casos")
 
@@ -294,6 +338,12 @@ sum(surtos_alunos_municipal$CASO)
 
 surtos_alunos_estadual <- subset(surtos_idade_escola, surtos_idade_escola$INSTITUICAO == "Pública Estadual")
 sum(surtos_alunos_estadual$CASO)
+
+surtos_alunos_federal <- subset(surtos_idade_escola, surtos_idade_escola$INSTITUICAO == "Pública Federal")
+sum(surtos_alunos_federal$CASO)
+
+surtos_alunos_filantropica <- subset(surtos_idade_escola, surtos_idade_escola$INSTITUICAO == "Filantropica")
+sum(surtos_alunos_filantropica$CASO)
 
 
 ########## Tabela nivel de ensino ############
@@ -408,6 +458,12 @@ sum(surtos_prof_municipal$CASO)
 surtos_prof_estadual <- subset(surtos_prof_instituicao, surtos_prof_instituicao$INSTITUICAO == "Pública Estadual")
 sum(surtos_prof_estadual$CASO)
 
+surtos_prof_federal <- subset(surtos_prof_instituicao, surtos_prof_instituicao$INSTITUICAO == "Pública Federal")
+sum(surtos_prof_federal$CASO)
+
+surtos_prof_filantropica <- subset(surtos_prof_instituicao, surtos_prof_instituicao$INSTITUICAO == "Filantropica")
+sum(surtos_prof_filantropica$CASO)
+
 ############## #SURTOS OUTROS COLABORADORES ################
 surtos_outros_colab <- subset(surtos_tot, surtos_tot$CATEGORIA == "Outros colaboradores")
 surtos_outros_instituicao <- surtos_outros_colab  %>%
@@ -425,6 +481,12 @@ sum(surtos_outros_municipal$CASO)
 
 surtos_outros_estadual <- subset(surtos_outros_instituicao, surtos_outros_instituicao$INSTITUICAO == "Pública Estadual")
 sum(surtos_outros_estadual$CASO)
+
+surtos_outros_federal<- subset(surtos_outros_instituicao, surtos_outros_instituicao$INSTITUICAO == "Pública Federal")
+sum(surtos_outros_federal$CASO)
+
+surtos_outros_filantropica <- subset(surtos_outros_instituicao, surtos_outros_instituicao$INSTITUICAO == "Filantropica")
+sum(surtos_outros_filantropica$CASO)
 
 
 #########################   ANALISE DE SURTOS ATIVOS ##############################################
@@ -477,7 +539,11 @@ sum (suativo_munic$CASO)
 suativo_estadual <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Pública Estadual")
 sum(suativo_estadual$CASO)
 
+suativo_federal <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Pública Federal")
+sum(suativo_federal$CASO)
 
+suativo_filantropica <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Filantropica")
+sum(suativo_filantropica$CASO)
 
 #Grafico Escola com Surtos x Nº de Casos Confirmados
 ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, fill=ESCOLA))+
@@ -493,25 +559,39 @@ ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, f
 
 ########################  MEU DATA FRAME DE SURTOS ###############################################
 
-placar_surtos <- data.frame(Escolas = c('PRIVADAS', 'MUNICIPAIS', 'ESTADUAIS', 'FEDERAIS', 'TOTAL'),
-                         "Total Surtos/Escola" = c(sum (tot_surtos_privada$CASO),sum (tot_surtos_munic$CASO),
-                          sum (tot_surtos_estadual$CASO), 0, sum (surtos_sum$CASO)), 
+placar_surtos <- data.frame(Escolas = c('PRIVADAS', 'MUNICIPAIS', 'ESTADUAIS', 'FEDERAIS', 'FILANTROPICAS', 'TOTAL'),
+                         
+                            "Total Surtos/Escola" = 
+                           c(sum (tot_surtos_privada$CASO),sum (tot_surtos_munic$CASO),
+                           sum (tot_surtos_estadual$CASO), sum (tot_surtos_federal$CASO), 
+                           filantropica <- sum(tot_surtos_filantropica$CASO), sum (surtos_sum$CASO)),  
+                           
+                      
+                        "Total de Casos" = 
+                         c(sum (tot_surtos_privada$CASOS_ESCOLA), sum(tot_surtos_munic$CASOS_ESCOLA),
+                         sum(tot_surtos_estadual$CASOS_ESCOLA), sum(tot_surtos_federal$CASOS_ESCOLA),
+                         sum(tot_surtos_filantropica$CASOS_ESCOLA), sum(base_unificada$Casos)),
+                        
+                         "Alunos" = 
+                        c(sum(surtos_alunos_privada$CASO), sum(surtos_alunos_municipal$CASO),
+                        sum(surtos_alunos_estadual$CASO), sum(surtos_alunos_federal$CASO),
+                        sum(surtos_alunos_filantropica$CASO), sum(surtos_idade_escola$CASO)), 
 
-                        "Total de Casos" = c(sum (tot_surtos_privada$CASOS_ESCOLA), sum(tot_surtos_munic$CASOS_ESCOLA),
-                         sum(tot_surtos_estadual$CASOS_ESCOLA), 0, sum(base_unificada$Casos)), 
-
-                         "Alunos" = c(sum(surtos_alunos_privada$CASO), sum(surtos_alunos_municipal$CASO),
-                        sum(surtos_alunos_estadual$CASO), 0, sum(surtos_idade_escola$CASO)), 
-
-                      "Professores" = c(sum(surtos_prof_privada$CASO), sum(surtos_prof_municipal$CASO),
-                       sum(surtos_prof_estadual$CASO), 0, sum(surtos_prof_instituicao$CASO)) ,
+                      "Professores" = 
+                       c(sum(surtos_prof_privada$CASO), sum(surtos_prof_municipal$CASO),
+                       sum(surtos_prof_estadual$CASO), sum(surtos_prof_federal$CASO), 
+                       sum(surtos_prof_filantropica$CASO), sum(surtos_prof_instituicao$CASO)) ,
 
 
-                      "Outros Colaboradores" = c(sum(surtos_outros_privada$CASO), sum(surtos_outros_municipal$CASO),
-                      sum(surtos_outros_estadual$CASO), 0, sum(surtos_outros_colab$CASO)),
+                      "Outros Colaboradores" = 
+                      c(sum(surtos_outros_privada$CASO), sum(surtos_outros_municipal$CASO),
+                      sum(surtos_outros_estadual$CASO), sum(surtos_outros_federal$CASO), 
+                      sum(surtos_outros_filantropica$CASO),sum(surtos_outros_colab$CASO)),
   
-                      "Surtos Ativos/Escola" = c (sum(suativo_priv$CASO), sum (suativo_munic$CASO),
-                      sum(suativo_estadual$CASO), 0 , sum(surtos_escola$CASO)))
+                      "Surtos Ativos/Escola" = 
+                      c (sum(suativo_priv$CASO), sum (suativo_munic$CASO),
+                      sum(suativo_estadual$CASO), sum (suativo_federal$CASO), 
+                      sum (suativo_filantropica$CASO), sum(surtos_escola$CASO)))
 
 # DADOS EM CSV 
 write.csv(placar_surtos, "placar_surtos.csv", row.names = F)

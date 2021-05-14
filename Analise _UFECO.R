@@ -19,16 +19,93 @@ solicitacoes_escola <- notificaescola %>% dplyr::select(`A pessoa que você quer
 names(solicitacoes_escola) <- c('ALUNO_PROF', 'ESCOLA', 'TURMA', 'AFASTAMENTO', 'DIAGNOSTICO', 'EXAME', 'AGENDAMENTO',' INSTITUICAO','IDADE')
 
 solicitacoes_escola <- solicitacoes_escola[!is.na(solicitacoes_escola$ESCOLA),]
+solicitacoes_escola <- solicitacoes_escola [!is.na(solicitacoes_escola $DIAGNOSTICO),]
+solicitacoes_escola  <- solicitacoes_escola [!is.na(solicitacoes_escola $ALUNO_PROF),]
+
+
+## NUMERO CÇAS TESTADAS ##
+## FAIXA ETARIA 0-9 anos####
+solicitacoes_escola_infantil <- subset(solicitacoes_escola, solicitacoes_escola$IDADE
+                                       %in% c(0, 1 , 2 , 3, 4 ,5 ,6 ,7 ,8 ,9))
+solicitacoes_escola_infantil$CASOS <- 1
+solicitacoes_escola_infantil <- solicitacoes_escola_infantil[!is.na(solicitacoes_escola_infantil$EXAME),]  
+
+#Total de testadas
+sum(solicitacoes_escola_infantil$CASOS)
+
+#Numero de positivas
+solicitacoes_escola_infantil_positivos <- subset(solicitacoes_escola_infantil, solicitacoes_escola_infantil$DIAGNOSTICO
+                                 %in% c("Confirmado visto laudo", "Confirmado"))
+#Total positivas
+sum (solicitacoes_escola_infantil_positivos$CASOS)
+
+## FAIXA ETARIA 10-19 anos####
+solicitacoes_escola_adolesc <- subset(solicitacoes_escola, solicitacoes_escola$IDADE
+                                       %in% c(10, 11 , 12 , 13, 14 ,15 ,16 ,17 ,18 ,19))
+solicitacoes_escola_adolesc$CASOS <- 1
+solicitacoes_escola_adolesc <- solicitacoes_escola_adolesc[!is.na(solicitacoes_escola_adolesc$EXAME),]  
+
+#Total de testadas
+sum(solicitacoes_escola_adolesc$CASOS)
+
+#Numero de positivas
+solicitacoes_escola_adolesc_positivos <- subset(solicitacoes_escola_adolesc, solicitacoes_escola_adolesc$DIAGNOSTICO
+                                                 %in% c("Confirmado visto laudo", "Confirmado"))
+#Total positivas
+sum (solicitacoes_escola_adolesc_positivos$CASOS)
+
+
+#PROFESSORES TESTADOS
+professores_testados <- subset (solicitacoes_escola, solicitacoes_escola$ALUNO_PROF 
+                                %in% c ("Professor ou auxiliar de sala", 
+                                        "Professor ou auxiliar de sala do ensino infantil",
+                                        "Professor do ensino fundamental",
+                                        "Professor do ensino médio",
+                                        "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                        "Professor do ensino fundamental e médio",
+                                        "Outros professores (como de universidade; escola para adultos)")) 
+                                       
+
+professores_testados <- professores_testados[!is.na(professores_testados$EXAME),]  
+professores_testados$CASOS <-1
+sum(professores_testados$CASOS)
+
+professores_testados_positvos <- subset(professores_testados, professores_testados$DIAGNOSTICO
+                                 %in% c("Confirmado visto laudo", "Confirmado"))
+
+
+sum(professores_testados_positvos$CASOS)
+
+
+
+##Outros colaboradores testados
+outros_colab_testados <- subset (solicitacoes_escola, solicitacoes_escola$ALUNO_PROF 
+                                == "Outros colaboradores")
+
+
+outros_colab_testados  <- outros_colab_testados [!is.na(outros_colab_testados$EXAME),]  
+outros_colab_testados $CASOS <-1
+sum(outros_colab_testados$CASOS)
+
+outros_colab_testados_positvos <- subset(outros_colab_testados, outros_colab_testados$DIAGNOSTICO
+                                        %in% c("Confirmado visto laudo", "Confirmado"))
+
+
+sum(outros_colab_testados_positvos$CASOS)
+
+
+
 
 #NUMERO DE FUNCIONARIOS TESTADOS
 funcionarios_testados <- subset (solicitacoes_escola, solicitacoes_escola$ALUNO_PROF 
-                                 %in% c ("Professor ou auxiliar de sala",
-                                        "Professor ou auxiliar de sala de ensino infantil ou fundamental",
-                                        "Professor ou auxiliar de sala do ensino infantil",
-                                        "Professor do ensino fundamental e médio",
-                                        "Professor do ensino médio",
-                                       "Outros professores (como de universidade; escola para adultos)",
-                                      "Professor do ensino fundamental", "Outros colaboradores"))
+                                 %in% c ("Professor ou auxiliar de sala", 
+                                         "Professor ou auxiliar de sala do ensino infantil",
+                                         "Professor do ensino fundamental",
+                                         "Professor do ensino médio",
+                                         "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                         "Professor do ensino fundamental e médio",
+                                         "Outros professores (como de universidade; escola para adultos)", 
+                                         "Outros colaboradores"))
 
 funcionarios_testados <- funcionarios_testados[!is.na(funcionarios_testados$EXAME),]  
 funcionarios_testados$CASOS <-1
@@ -62,10 +139,11 @@ write.csv(trabalhadores_testados, "trabalhadores_testados.csv", row.names = F)
 
 # ALUNOS 
 solicitacoes_alunos <- subset(solicitacoes_escola, solicitacoes_escola$ALUNO_PROF
-                              %in% c ("aluno", "Aluno", "Outros alunos (universidade; escola para adultos; por exemplo)",
-                                      "Aluno do ensino infantil",
+                              %in% c ("Aluno", "Aluno do ensino infantil",
                                       "Aluno do ensino fundamental",
-                                      "Aluno do ensino médio"))
+                                      "Aluno do ensino médio",
+                                      "Aluno de idiomas",
+                                      "Outros alunos (universidade; escola para adultos; por exemplo)"))
 #Crianças notificadas
 solicitacoes_alunos$CASOS <- 1
 sum(solicitacoes_alunos$CASOS)

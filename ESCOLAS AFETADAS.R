@@ -24,16 +24,169 @@ analise_escola <- notificaescola %>% dplyr::select(`A pessoa que você quer noti
 names(analise_escola) <- c('ALUNO_PROF', 'ESCOLA','INSTITUICAO', 'TURMA', 'IDADE','DIAGNOSTICO','DT_PRIM_SINTOM','AFASTAMENTO', 'AGENDAMENTO', 'EXAME', 'MUNICIPIO', 'SURTO')
 analise_escola$DT_PRIM_SINTOM <- as.Date(analise_escola$DT_PRIM_SINTOM, format = '%d/%m/%Y')
 analise_escola <- analise_escola[!is.na(analise_escola$ESCOLA),]
+analise_escola <- analise_escola[!is.na(analise_escola$DIAGNOSTICO),]
+analise_escola <- analise_escola[!is.na(analise_escola$ALUNO_PROF),]
+
 
 analise_escola_notif <- subset(analise_escola, analise_escola$DIAGNOSTICO %in% 
                                  c("Confirmado", "Confirmado visto laudo",
-                                   "Suspeito", "Suspeito e recusou exame", 
-                                   "Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
-                                  
-                            
+                                  "Suspeito", "Suspeito e recusou exame", 
+                                  "Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
+
+analise_escola_notif$CASOS <-1                                  
+escolas_notificadas <- analise_escola_notif %>%
+  group_by(ESCOLA, INSTITUICAO)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
 
 
               ###### ANALISE DE NOTIFICAÇÕES POR TIPO DE INSTITUICAO ######## 
+
+#################################### ESCOLAS FILANTROPICAS ######################################
+# ESCOLAS FILANTROPICAS COM NOTIFICAÇÕES
+filantropicas_notificadas <- subset(analise_escola_notif, analise_escola_notif$INSTITUICAO == "Filantropica")
+filantropicas_notificadas$CASOS <-1
+
+#LISTA DE ESCOLAS COM NOTIFICAÇÕES
+filantropicas_notificadas_tot <- filantropicas_notificadas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES
+sum(filantropicas_notificadas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS AFETADAS 
+filantropicas_notificadas_tot$CASO <-1
+sum (filantropicas_notificadas_tot$CASO)
+
+
+############ ALUNOS FILANTROPICA ##############
+
+# ALUNOS AFETADOS EM ESCOLA FILANTROPICA
+alunos_notificados_filantropicas <- subset(filantropicas_notificadas, filantropicas_notificadas$ALUNO_PROF %in% 
+                                    c("Aluno", "Aluno do ensino infantil",
+                                      "Aluno do ensino fundamental",
+                                      "Aluno do ensino médio",
+                                      "Aluno de idiomas",
+                                      "Outros alunos (universidade; escola para adultos; por exemplo)"))
+
+#Lista de escolas com ALUNOS notificados
+alunos_notificados_filantropicas_tot <- alunos_notificados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de ALUNOS
+sum(alunos_notificados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM ALUNOS AFETADOS 
+alunos_notificados_filantropicas_tot$CASO <-1
+sum (alunos_notificados_filantropicas_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM ALUNOS DE ESCOLA FILATROPICA
+alunos_confirmados_filantropicas <- subset(alunos_notificados_filantropicas, 
+                                    alunos_notificados_filantropicas$DIAGNOSTICO %in% 
+                                    c("Confirmado visto laudo", "Confirmado"))
+
+
+#Lista de escolas FILANTROPICAS com ALUNOS CONFIRMADOS
+alunos_confirmados_filantropicas_tot <- alunos_confirmados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE ALUNOS CONFIRMADOS
+sum(alunos_confirmados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM ALUNOS CONFIRMADOS
+alunos_confirmados_filantropicas_tot$CASO <-1
+sum (alunos_confirmados_filantropicas_tot$CASO)
+
+
+
+######## PROFESSORES FILANTROPICAS ##########
+
+prof_notificados_filantropicas <- subset(filantropicas_notificadas, filantropicas_notificadas$ALUNO_PROF %in% 
+                                  c("Professor ou auxiliar de sala", 
+                                    "Professor ou auxiliar de sala do ensino infantil",
+                                    "Professor do ensino fundamental",
+                                    "Professor do ensino médio",
+                                    "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                    "Professor do ensino fundamental e médio",
+                                    "Outros professores (como de universidade; escola para adultos)"))
+
+
+#Lista de escolas com PROFESSORES notificados
+prof_notificados_filantropicas_tot <- prof_notificados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de PROFESSORES
+sum(prof_notificados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM PROFESSORES AFETADOS 
+prof_notificados_filantropicas_tot$CASO <-1
+sum (prof_notificados_filantropicas_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM PROFESSORES DE ESCOLA FILANTROPICA
+prof_confirmados_filantropicas <- subset(prof_notificados_filantropicas, 
+                                         prof_notificados_filantropicas$DIAGNOSTICO %in% 
+                                        c("Confirmado visto laudo", "Confirmado"))
+
+#Lista de escolas FILANTROPICAS com PROFESSORES CONFIRMADOS
+prof_confirmados_filantropicas_tot <- prof_confirmados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE PROFESSORES CONFIRMADOS
+sum(prof_confirmados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM PROFESSORES CONFIRMADOS
+prof_confirmados_filantropicas_tot$CASO <-1
+sum (prof_confirmados_filantropicas_tot$CASO)
+
+
+####### OUTROS COLABORADORES FILANTROPICAS #######
+
+
+outros_notificados_filantropicas <- subset(filantropicas_notificadas, 
+                                           filantropicas_notificadas$ALUNO_PROF %in% 
+                                           c("Outros colaboradores"))
+
+
+#Lista de escolas com OUTROS COLABORADORES notificados
+outros_notificados_filantropicas_tot <- outros_notificados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de OUTROS COLABORADORES
+sum(outros_notificados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM OUTROS COLABORADORES AFETADOS 
+outros_notificados_filantropicas_tot$CASO <-1
+sum (outros_notificados_filantropicas_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM OUTROS COLABORADORES DE ESCOLA FILANTROPICA
+outros_confirmados_filantropicas <- subset(outros_notificados_filantropicas, 
+                                           outros_notificados_filantropicas$DIAGNOSTICO %in% 
+                                            c("Confirmado visto laudo", "Confirmado"))
+
+#Lista de escolas FILANTROPICAS com OUTROS COLABORADORES CONFIRMADOS
+outros_confirmados_filantropicas_tot <- outros_confirmados_filantropicas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE OUTROS COLABORADORES CONFIRMADOS
+sum(outros_confirmados_filantropicas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FILANTROPICAS COM OUTROS COLABORADORES CONFIRMADOS
+outros_confirmados_filantropicas_tot$CASO <-1
+sum (outros_confirmados_filantropicas_tot$CASO)
 
                             
 #####################################   ESCOLAS PRIVADAS   #########################################
@@ -495,17 +648,167 @@ sum (outros_confirmados_est_tot$CASO)
 
 ####################### ESCOLAS FEDERAIS #####################################
 
+# ESCOLAS COM NOTIFICAÇÕES
+federais_notificadas <- subset(analise_escola_notif, 
+                                analise_escola_notif$INSTITUICAO == 
+                                  "Pública Federal")
+federais_notificadas$CASOS <-1
+
+#Lista de escolas com notificados
+federais_notificadas_tot <- federais_notificadas %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES
+sum(federais_notificadas_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS AFETADAS 
+federais_notificadas_tot$CASO <-1
+sum (federais_notificadas_tot$CASO)
+
+
+
+############ ALUNOS FEDERAIS #################
+
+# ALUNOS AFETADOS EM ESCOLA FEDERAl
+alunos_notificados_federais <- subset(federais_notificadas, federais_notificadas$ALUNO_PROF %in% 
+                                         c("Aluno", "Aluno do ensino infantil",
+                                           "Aluno do ensino fundamental",
+                                           "Aluno do ensino médio",
+                                           "Aluno de idiomas",
+                                           "Outros alunos (universidade; escola para adultos; por exemplo)"))
+
+
+#Lista de escolas com ALUNOS notificados
+alunos_notificados_federais_tot <- alunos_notificados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de ALUNOS
+sum(alunos_notificados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM ALUNOS AFETADOS 
+alunos_notificados_federais_tot$CASO <-1
+sum (alunos_notificados_federais_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM ALUNOS DE ESCOLA FEDERAIS
+alunos_confirmados_federais <- subset(alunos_notificados_federais, 
+                                       alunos_notificados_federais$DIAGNOSTICO %in% 
+                                       c("Confirmado visto laudo", "Confirmado"))
+
+
+#Lista de escolas FEDERAIS com ALUNOS CONFIRMADOS
+alunos_confirmados_federais_tot <- alunos_confirmados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE ALUNOS CONFIRMADOS
+sum(alunos_confirmados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM ALUNOS CONFIRMADOS
+alunos_confirmados_federais_tot$CASO <-1
+sum (alunos_confirmados_federais_tot$CASO)
+
+
+
+######## PROFESSORES FEDERAIS ##########
+
+
+prof_notificados_federais <- subset(federais_notificadas, federais_notificadas$ALUNO_PROF %in% 
+                                       c("Professor ou auxiliar de sala", 
+                                         "Professor ou auxiliar de sala do ensino infantil",
+                                         "Professor do ensino fundamental",
+                                         "Professor do ensino médio",
+                                         "Professor ou auxiliar de sala de ensino infantil ou fundamental",
+                                         "Professor do ensino fundamental e médio",
+                                         "Outros professores (como de universidade; escola para adultos)"))
+
+
+#Lista de escolas com PROFESSORES notificados
+prof_notificados_federais_tot <- prof_notificados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de PROFESSORES
+sum(prof_notificados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM PROFESSORES AFETADOS 
+prof_notificados_federais_tot$CASO <-1
+sum (prof_notificados_federais_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM PROFESSORES DE ESCOLA FEDERAIS
+prof_confirmados_federais <- subset(prof_notificados_federais, prof_notificados_federais$DIAGNOSTICO %in% 
+                                       c("Confirmado visto laudo", "Confirmado"))
+
+#Lista de escolas FEDERAIS com PROFESSORES CONFIRMADOS
+prof_confirmados_federais_tot <- prof_confirmados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE PROFESSORES CONFIRMADOS
+sum(prof_confirmados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM PROFESSORES CONFIRMADOS
+prof_confirmados_federais_tot$CASO <-1
+sum (prof_confirmados_federais_tot$CASO)
+
+
+
+####### OUTROS COLABORADORES FEDERAIS #######
+
+
+outros_notificados_federais <- subset(federais_notificadas, federais_notificadas$ALUNO_PROF %in% 
+                                         c("Outros colaboradores"))
+
+
+#Lista de escolas com OUTROS COLABORADORES notificados
+outros_notificados_federais_tot <- outros_notificados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE NOTIFICAÇÕES de OUTROS COLABORADORES
+sum(outros_notificados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM OUTROS COLABORADORES AFETADOS 
+outros_notificados_federais_tot$CASO <-1
+sum (outros_notificados_federais_tot$CASO)
+
+# TOTAL DE CASOS CONFIRMADOS EM OUTROS COLABORADORES DE ESCOLA FEDERAIS
+outros_confirmados_federais <- subset(outros_notificados_federais, outros_notificados_federais$DIAGNOSTICO %in% 
+                                         c("Confirmado visto laudo", "Confirmado"))
+
+#Lista de escolas FEDERAIS com OUTROS COLABORADORES CONFIRMADOS
+outros_confirmados_federais_tot <- outros_confirmados_federais %>%
+  group_by(ESCOLA)%>%
+  summarise(CASOS_ESCOLA = sum(CASOS, na.rm = T))%>%
+  arrange(CASOS_ESCOLA)
+
+#TOTAL DE OUTROS COLABORADORES CONFIRMADOS
+sum(outros_confirmados_federais_tot$CASOS_ESCOLA) 
+
+# TOTAL DE ESCOLAS FEDERAIS COM OUTROS COLABORADORES CONFIRMADOS
+outros_confirmados_federais_tot$CASO <-1
+sum (outros_confirmados_federais_tot$CASO)
+
 
 ########################    TOTAIS   #########################################
 ## ESCOLAS AFETADAS ## 
 privada <- sum(privadas_notificadas_tot$CASO)
 municipal <- sum (municipais_notificadas_tot$CASO)
 estadual <- sum (estaduais_notificadas_tot$CASO)
-federal <- 0
+federal <- sum (federais_notificadas_tot$CASO)
+filantropica <- sum (filantropicas_notificadas_tot$CASO)
 escolas_tipo_escola <- data.frame("Privada" = privada,
                                   "Publica Municipal" = municipal,
                                   "Publica Estadual" = estadual,
-                                  "Publica Federal" = federal)
+                                  "Publica Federal" = federal,
+                                  "Filantropica" = filantropica)
 escolas_tipo_escola <- melt(escolas_tipo_escola)
 names(escolas_tipo_escola) <- c("Tipo", "Escolas")
 
@@ -515,11 +818,14 @@ sum(escolas_tipo_escola$Escolas)
 privada <- sum(privadas_notificadas_tot$CASOS_ESCOLA)
 municipal <- sum(municipais_notificadas_tot$CASOS_ESCOLA)
 estadual <-  sum(estaduais_notificadas_tot$CASOS_ESCOLA)
-federal <- 0
+federal <- sum(federais_notificadas_tot$CASOS_ESCOLA)
+filantropica <- sum(filantropicas_notificadas_tot$CASOS_ESCOLA)
 notificacao_tipo_escola <- data.frame("Privada" = privada,
                                   "Publica Municipal" = municipal,
                                   "Publica Estadual" = estadual,
-                                  "Publica Federal" = federal)
+                                  "Publica Federal" = federal,
+                                  "Filantropica" = filantropica)
+
 notificacao_tipo_escola <- melt(notificacao_tipo_escola)
 names(notificacao_tipo_escola) <- c("Tipo", "Notificacoes")
 
@@ -529,12 +835,15 @@ sum(notificacao_tipo_escola$Notificacoes)
 privada <- sum(alunos_notificados_priv_tot$CASOS_ESCOLA)
 municipal<- sum(alunos_notificados_munic_tot$CASOS_ESCOLA)
 estadual <- sum(alunos_notificados_est_tot$CASOS_ESCOLA)
-federal <- 0 
-
+federal <- sum(alunos_notificados_federais_tot$CASOS_ESCOLA)  
+filantropica <- sum(alunos_notificados_filantropicas_tot$CASOS_ESCOLA)
+  
 aluno_notificacao_tipo_escola <- data.frame("Privada" = privada,
                                       "Publica Municipal" = municipal,
                                       "Publica Estadual" = estadual,
-                                      "Publica Federal" = federal)
+                                      "Publica Federal" = federal,
+                                      "Filantropica" = filantropica)
+
 aluno_notificacao_tipo_escola <- melt(aluno_notificacao_tipo_escola)
 names(aluno_notificacao_tipo_escola) <- c("Tipo", "Notificacoes")
 
@@ -544,12 +853,15 @@ sum(aluno_notificacao_tipo_escola$Notificacoes)
 privada <- sum(alunos_confirmados_priv_tot$CASOS_ESCOLA)
 municipal <- sum(alunos_confirmados_munic_tot$CASOS_ESCOLA)
 estadual <- sum(alunos_confirmados_est_tot$CASOS_ESCOLA)
-federal <- 0 
-
+federal <- sum(alunos_confirmados_federais_tot$CASOS_ESCOLA)  
+filantropica <- sum(alunos_confirmados_filantropicas_tot$CASOS_ESCOLA)
+  
 aluno_conf_tipo_escola <- data.frame("Privada" = privada,
-                                            "Publica Municipal" = municipal,
-                                            "Publica Estadual" = estadual,
-                                            "Publica Federal" = federal)
+                                      "Publica Municipal" = municipal,
+                                      "Publica Estadual" = estadual,
+                                      "Publica Federal" = federal,
+                                      "Filantropica" = filantropica)
+
 aluno_conf_tipo_escola <- melt(aluno_conf_tipo_escola)
 names(aluno_conf_tipo_escola) <- c("Tipo", "Casos")
 
@@ -559,12 +871,15 @@ sum(aluno_conf_tipo_escola$Casos)
 privada <- sum(prof_notificados_priv_tot$CASOS_ESCOLA)
 municipal <- sum(prof_notificados_munic_tot$CASOS_ESCOLA)
 estadual <- sum(prof_notificados_est_tot$CASOS_ESCOLA)
-federal < - 0 
+federal < - sum(prof_notificados_federais_tot$CASOS_ESCOLA) 
+filantropica <-sum(prof_notificados_filantropicas_tot$CASOS_ESCOLA)
 
 prof_notificacao_tipo_escola <- data.frame("Privada" = privada,
                                             "Publica Municipal" = municipal,
                                             "Publica Estadual" = estadual,
-                                            "Publica Federal" = federal)
+                                            "Publica Federal" = federal,
+                                            "Filantropica" = filantropica)
+
 prof_notificacao_tipo_escola <- melt(prof_notificacao_tipo_escola)
 names(prof_notificacao_tipo_escola) <- c("Tipo", "Notificacoes")
 
@@ -575,12 +890,15 @@ sum(prof_notificacao_tipo_escola$Notificacoes)
 privada <- sum(prof_confirmados_priv_tot$CASOS_ESCOLA)
 municipal <- sum(prof_confirmados_munic_tot$CASOS_ESCOLA)
 estadual <- sum(prof_confirmados_est_tot$CASOS_ESCOLA) 
-federal <- 0 
-
+federal <- sum(prof_confirmados_federais_tot$CASOS_ESCOLA)  
+filantropica <- sum(prof_confirmados_filantropicas_tot$CASOS_ESCOLA)
+  
 prof_conf_tipo_escola <- data.frame("Privada" = privada,
                                      "Publica Municipal" = municipal,
                                      "Publica Estadual" = estadual,
-                                     "Publica Federal" = federal)
+                                     "Publica Federal" = federal,
+                                     "Filantropica" = filantropica)
+
 prof_conf_tipo_escola <- melt(prof_conf_tipo_escola)
 names(prof_conf_tipo_escola) <- c("Tipo", "Casos")
 
@@ -591,12 +909,15 @@ sum(prof_conf_tipo_escola$Casos)
 privada <-sum(outros_notificados_priv_tot$CASOS_ESCOLA)
 municipal <- sum(outros_notificados_munic_tot$CASOS_ESCOLA)
 estadual <- sum(outros_notificados_est_tot$CASOS_ESCOLA)
-federal <- 0  
+federal <- sum(outros_notificados_federais_tot$CASOS_ESCOLA)  
+filantropica <-  sum(outros_notificados_filantropicas_tot$CASOS_ESCOLA)
                                                                                               
 outros_notificacao_tipo_escola <- data.frame("Privada" = privada,
                                            "Publica Municipal" = municipal,
                                            "Publica Estadual" = estadual,
-                                           "Publica Federal" = federal)
+                                           "Publica Federal" = federal,
+                                           "Filantropica" = filantropica)
+
 outros_notificacao_tipo_escola <- melt(outros_notificacao_tipo_escola)
 names(outros_notificacao_tipo_escola) <- c("Tipo", "Notificacoes")
 
@@ -606,12 +927,15 @@ sum(outros_notificacao_tipo_escola$Notificacoes)
 privada <- sum(outros_confirmados_priv_tot$CASOS_ESCOLA)
 municipal <- sum(outros_confirmados_munic_tot$CASOS_ESCOLA)
 estadual <-  sum(outros_confirmados_est_tot$CASOS_ESCOLA)
-federal <- 0 
-
+federal <- sum(outros_confirmados_federais_tot$CASOS_ESCOLA)  
+filantropica <-sum(outros_confirmados_filantropicas_tot$CASOS_ESCOLA)
+  
 outros_conf_tipo_escola <- data.frame("Privada" = privada,
                                     "Publica Municipal" = municipal,
                                     "Publica Estadual" = estadual,
-                                    "Publica Federal" = federal)
+                                    "Publica Federal" = federal,
+                                    "Filantropica" = filantropica)
+
 outros_conf_tipo_escola <- melt(outros_conf_tipo_escola)
 names(outros_conf_tipo_escola) <- c("Tipo", "Casos")
 
@@ -620,31 +944,44 @@ sum(outros_conf_tipo_escola$Casos)
 
 ###### DATA FRAME ########
 
-placar_geral <- data.frame(Escolas = c('PRIVADAS', 'MUNICIPAIS', 'ESTADUAIS', 'FEDERAIS', 'TOTAL'),
+placar_geral <- data.frame(Escolas = c('PRIVADAS', 'MUNICIPAIS', 'ESTADUAIS', 'FEDERAIS', 'FILANTROPICAS', 'TOTAL'),
                            
                             "ESCOLAS AFETADAS" = c (sum(privadas_notificadas_tot$CASO), sum (municipais_notificadas_tot$CASO),
-                                                    sum (estaduais_notificadas_tot$CASO), 0 , sum(escolas_tipo_escola$Escolas)), 
+                                                    sum (estaduais_notificadas_tot$CASO), sum (federais_notificadas_tot$CASO), 
+                                                    sum (filantropicas_notificadas_tot$CASO), sum(escolas_tipo_escola$Escolas)), 
                             
                             "TOTAL NOTIFICAÇÕES" = c(sum(privadas_notificadas_tot$CASOS_ESCOLA), sum(municipais_notificadas_tot$CASOS_ESCOLA),
-                                                     sum(estaduais_notificadas_tot$CASOS_ESCOLA), 0 , sum(notificacao_tipo_escola$Notificacoes)),
+                                                     sum(estaduais_notificadas_tot$CASOS_ESCOLA), sum(federais_notificadas_tot$CASOS_ESCOLA),
+                                                     sum(filantropicas_notificadas_tot$CASOS_ESCOLA), sum(notificacao_tipo_escola$Notificacoes)),
                             
                             "ALUNOS NOTIFICADOS" = c (sum(alunos_notificados_priv_tot$CASOS_ESCOLA),sum(alunos_notificados_munic_tot$CASOS_ESCOLA), 
-                                                      sum(alunos_notificados_est_tot$CASOS_ESCOLA), 0 , sum(aluno_notificacao_tipo_escola$Notificacoes)),
+                                                      sum(alunos_notificados_est_tot$CASOS_ESCOLA), sum(alunos_notificados_federais_tot$CASOS_ESCOLA), 
+                                                      sum(alunos_notificados_filantropicas_tot$CASOS_ESCOLA), sum(aluno_notificacao_tipo_escola$Notificacoes)),
                            
                             "ALUNOS CONFIRMADOS" = c(sum(alunos_confirmados_priv_tot$CASOS_ESCOLA), sum(alunos_confirmados_munic_tot$CASOS_ESCOLA),
-                                                     sum(alunos_confirmados_est_tot$CASOS_ESCOLA), 0 , sum(aluno_conf_tipo_escola$Casos)), 
+                                                     sum(alunos_confirmados_est_tot$CASOS_ESCOLA), sum(alunos_confirmados_federais_tot$CASOS_ESCOLA), 
+                                                     sum(alunos_confirmados_filantropicas_tot$CASOS_ESCOLA), sum(aluno_conf_tipo_escola$Casos)), 
                                                      
                             "PROFESSORES NOTIFICADOS" = c (sum(prof_notificados_priv_tot$CASOS_ESCOLA), sum(prof_notificados_munic_tot$CASOS_ESCOLA), 
-                                                           sum(prof_notificados_est_tot$CASOS_ESCOLA), 0 , sum(prof_notificacao_tipo_escola$Notificacoes)), 
+                                                           sum(prof_notificados_est_tot$CASOS_ESCOLA), sum(prof_notificados_federais_tot$CASOS_ESCOLA), 
+                                                           sum(prof_notificados_filantropicas_tot$CASOS_ESCOLA), sum(prof_notificacao_tipo_escola$Notificacoes)), 
                             
                             "PROFESSORES CONFIRMADOS" = c(sum(prof_confirmados_priv_tot$CASOS_ESCOLA), sum(prof_confirmados_munic_tot$CASOS_ESCOLA), 
-                                                          sum(prof_confirmados_est_tot$CASOS_ESCOLA) , 0 , sum(prof_conf_tipo_escola$Casos)),
+                                                          sum(prof_confirmados_est_tot$CASOS_ESCOLA) , sum(prof_confirmados_federais_tot$CASOS_ESCOLA),
+                                                          sum(prof_confirmados_filantropicas_tot$CASOS_ESCOLA), sum(prof_conf_tipo_escola$Casos)),
                             
                            "OUTROS COLABORADORES NOTIF" = c(sum(outros_notificados_priv_tot$CASOS_ESCOLA), sum(outros_notificados_munic_tot$CASOS_ESCOLA),
-                                                            sum(outros_notificados_est_tot$CASOS_ESCOLA), 0 , sum(outros_notificacao_tipo_escola$Notificacoes)), 
+                                                            sum(outros_notificados_est_tot$CASOS_ESCOLA), sum(outros_notificados_federais_tot$CASOS_ESCOLA), 
+                                                            sum(outros_notificados_filantropicas_tot$CASOS_ESCOLA), sum(outros_notificacao_tipo_escola$Notificacoes)), 
                            
                            "OUTROS COLABORADORES CONF" = c(sum(outros_confirmados_priv_tot$CASOS_ESCOLA), sum(outros_confirmados_munic_tot$CASOS_ESCOLA), 
-                                                           sum(outros_confirmados_est_tot$CASOS_ESCOLA), 0 , sum(outros_conf_tipo_escola$Casos)))
+                                                           sum(outros_confirmados_est_tot$CASOS_ESCOLA), sum(outros_confirmados_federais_tot$CASOS_ESCOLA), 
+                                                           sum(outros_confirmados_filantropicas_tot$CASOS_ESCOLA), sum(outros_conf_tipo_escola$Casos)))
 
-                           
-            
+#Dados em CSV
+write.csv(placar_geral, "placar_geral.csv", row.names = F)
+
+                    
+
+
+

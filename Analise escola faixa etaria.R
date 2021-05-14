@@ -17,6 +17,15 @@ notif_geral <- notificaescola %>% dplyr::select(`A pessoa que você quer notific
 names(notif_geral) <- c('ALUNO_PROF', 'TURMA', 'ESCOLA','DIAGNOSTICO','IDADE')
 notif_geral$TURMA <- ifelse(notif_geral$TURMA == 'NULL', NA, notif_geral$TURMA)
 
+notif_geral <-notif_geral[!is.na(notif_geral$ESCOLA),]
+notif_geral <- notif_geral[!is.na(notif_geral$DIAGNOSTICO),]
+notif_geral <- notif_geral[!is.na(notif_geral$ALUNO_PROF),]
+
+
+notif_geral <- subset(notif_geral, notif_geral$DIAGNOSTICO %in% 
+                                 c("Confirmado", "Confirmado visto laudo",
+                                   "Suspeito", "Suspeito e recusou exame", 
+                                   "Descartado", "Descartado (suspeito que fez exame e foi negativo)"))
 
 ############## ANALISE CASOS NOTIFICADOS POR ESCOLARIDADE ###################### 
 
@@ -40,7 +49,10 @@ notif_geral_alunos_conf <- subset(notif_geral_conf, notif_geral_conf$ALUNO_PROF 
 
 notif_geral_alunos_conf$ESCOLARIDADE <- ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Aluno do ensino infantil", "Ensino Infantil",
                                     ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Aluno do ensino fundamental","Ensino Fundamental", 
-                                    ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Aluno do ensino médio" ,"Ensino Médio", NA)))
+                                    ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Aluno do ensino médio" ,"Ensino Médio",
+                                    ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Outros alunos (universidade; escola para adultos; por exemplo)", "Outros alunos",
+                                   ifelse(notif_geral_alunos_conf$ALUNO_PROF == "Aluno de idiomas", "Aluno de idiomas", NA)))))
+
 
 notif_geral_alunos_conf$CASOS <- 1
 
@@ -182,8 +194,10 @@ notif_geral_alunos_desc <- subset(notif_geral_descartado, notif_geral_descartado
 
 notif_geral_alunos_desc$ESCOLARIDADE <- ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Aluno do ensino infantil", "Ensino Infantil",
                                         ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Aluno do ensino fundamental","Ensino Fundamental", 
-                                        ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Aluno do ensino médio" ,"Ensino Médio", NA)))
-
+                                        ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Aluno do ensino médio" ,"Ensino Médio", 
+                                        ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Outros alunos (universidade; escola para adultos; por exemplo)", "Outros alunos",
+                                        ifelse(notif_geral_alunos_desc$ALUNO_PROF == "Aluno de idiomas", "Aluno de idiomas", NA)))))
+                                        
 notif_geral_alunos_desc$CASOS <- 1
 
 alunos_desc_nivel_escolaridade <- notif_geral_alunos_desc %>%
@@ -440,8 +454,8 @@ placar_nivel_escolaridade <- data.frame("Nível de Ensino" = c('INFANTIL', 'FUND
                            "PROF DESCARTADOS" = c(sum(descartados_infantil_prof$CASOS), sum(descartados_fudamental_prof$CASOS),
                                                   sum(descartados_medio_prof$CASOS), sum(descartados_outros_prof$CASOS) ,  sum(descartados_ignorado_prof$CASOS))) 
                           
-
                           
-
+#Dados em CSV
+write.csv(placar_nivel_escolaridade, "placar_nivel_escolaridade.csv", row.names = F)
                                                  
                           
