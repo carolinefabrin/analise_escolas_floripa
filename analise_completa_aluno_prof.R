@@ -3,8 +3,8 @@ library(tidyverse)
 library(dplyr)
 source("CUIDADO_link_com_a_base.R")
 library(readxl)
-Censo_2019 <- read_excel("C:/Users/carol/Downloads/Censo 2019.xlsx")
-View(Censo_2019)
+Censo_2018 <- read_excel("C:/Users/carol/Downloads/Censo 2018.xlsx")
+View(Censo_2018)
 
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)

@@ -3,8 +3,8 @@ library(zoo)
 library(reshape2)
 source("CUIDADO_link_com_a_base.R")
 
-Censo_2019 <- library(readxl)
-Censo_2019 <- read_excel("C:/Users/carol/Downloads/Censo 2019.xlsx")
+Censo_2018 <- library(readxl)
+Censo_2018 <- read_excel("C:/Users/carol/Downloads/Censo 2018.xlsx")
 
 notificaescola <- read_sheet(id_notificaescola, "Casos positivos e suspeitos em escolares", col_names = T, skip = 2)
 
@@ -545,7 +545,7 @@ sum(suativo_federal$CASO)
 suativo_filantropica <- subset(surtos_escola, surtos_escola$INSTITUICAO == "Filantropica")
 sum(suativo_filantropica$CASO)
 
-#Grafico Escola com Surtos x Nº de Casos Confirmados
+#Grafico Escola com Surtos ATIVOS x Nº de Casos Confirmados
 ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, fill=ESCOLA))+
   geom_col()+
   theme_bw()+
@@ -553,7 +553,6 @@ ggplot(surtos_escola, aes(x= reorder(ESCOLA, SURTOS_ESCOLA), y= SURTOS_ESCOLA, f
   theme(legend.position = "none")+
   xlab(" ")+
   ylab("Número de casos")
-
 
 
 

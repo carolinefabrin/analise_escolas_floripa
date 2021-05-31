@@ -38,6 +38,9 @@ monitora_escola_afetadas <- monitora_escola_atual %>%
   summarise(CASOS = sum(CASOS, na.rm = T))%>%
   arrange(desc(CASOS))
 
+# DADOS EM CSV 
+write.csv(monitora_escola_afetadas, "monitora_escola_afetadas.csv", row.names = F)
+
 
 #CASOS CONFIRMADOS ATIVOS
 notif_escola_hoje <- subset(monitora_escola, monitora_escola$DIAGNOSTICO %in% c("Confirmado visto laudo","Confirmado" ))

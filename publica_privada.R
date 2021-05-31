@@ -132,9 +132,9 @@ tot_casos_federal <- sum(casos_federal$CASOS_ESCOLA)
 tot_casos_filantropica <- sum(casos_filantropica$CASOS_ESCOLA)
 
 total_casos_tipo_escola <- data.frame("Privada" = tot_casos_privada,
-                                      "Publica Municipal" = tot_casos_municipal,
-                                      "Publica Estadual" = tot_casos_estadual,
-                                      "Publica Federal" = tot_casos_federal,
+                                      "Municipal" = tot_casos_municipal,
+                                      "Estadual" = tot_casos_estadual,
+                                      "Federal" = tot_casos_federal,
                                       "Filantropica" = tot_casos_filantropica)
 
 total_casos_tipo_escola <- melt(total_casos_tipo_escola)
